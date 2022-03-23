@@ -1,0 +1,28 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven {
+            name "Jitpack"
+            url "https://jitpack.io/"
+        }
+        maven {
+            name "Sonatype"
+            url "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        maven {
+            name "Sponge"
+            url "https://repo.spongepowered.org/maven"
+        }
+    }
+}
+
+rootProject.name = 'reine-game'
+include('server', 'client', 'common')

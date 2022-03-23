@@ -1,0 +1,11 @@
+apply plugin: 'application'
+
+application.mainClassName = "com.reine.server.Starter"
+
+dependencies {
+    implementation project(":common")
+}
+
+tasks.withType(JavaExec) {
+    setWorkingDir(new File(workingDir.getParentFile(), "run"))
+}
