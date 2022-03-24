@@ -5,7 +5,7 @@ import com.reine.client.gl.Window;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class Client {
+public class Client implements AutoCloseable {
     private final Window window;
 
     public Client() {
@@ -15,11 +15,7 @@ public class Client {
     }
 
     public void start() {
-        try {
-            loop();
-        } finally {
-            GraphicsLibrary.destroy();
-        }
+        loop();
     }
 
     private void loop() {
@@ -37,4 +33,8 @@ public class Client {
         glViewport(0, 0, width, height);
     }
 
+    @Override
+    public void close() {
+        GraphicsLibrary.destroy();
+    }
 }
