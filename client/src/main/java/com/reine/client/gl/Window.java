@@ -282,7 +282,7 @@ public class Window {
             glfwGetWindowSize(handle, pWidth, pHeight);
 
             GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-            
+
             assert vidmode != null;
             setPosition((vidmode.width() - pWidth.get(0)) / 2, (vidmode.height() - pHeight.get(0)) / 2);
         }
