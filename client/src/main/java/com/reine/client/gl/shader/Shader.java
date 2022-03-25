@@ -28,7 +28,7 @@ public class Shader {
                 glGetShaderiv(handle, GL_COMPILE_STATUS, status);
                 if (status.get() == GL_FALSE) {
                     String log = glGetShaderInfoLog(handle);
-                    System.err.println("Failed to compile shader! Log: " + log);
+                    System.err.println("Failed to compile shader! (" + resource + ") Log: " + log);
                 }
             }
         } catch (IOException e) {

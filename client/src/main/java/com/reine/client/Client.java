@@ -12,17 +12,17 @@ public class Client implements AutoCloseable {
     private final Window window;
 
     float[] vertices = {
-            // first triangle
-            0.5f, 0.5f, 0.0f, // top right
-            0.5f, -0.5f, 0.0f, // bottom right
-            -0.5f, 0.5f, 0.0f, // top left
-// second triangle
+            // vertices           colors
+             0.5f,  0.5f,  0.0f,  1.0f,  1.0f,  0.0f, // top right
+             0.5f, -0.5f,  0.0f,  1.0f,  0.5f,  0.0f, // bottom right
+            -0.5f,  0.5f,  0.0f,  0.5f,  1.0f,  0.0f, // top left
     };
 
     float[] vertices2 = {
-            0.5f, -0.5f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, // bottom left
-            -0.5f, 0.5f, 0.0f // top left
+            // vertices           colors
+             0.5f, -0.5f,  0.0f,  1.0f,  0.5f,  0.0f, // bottom right
+            -0.5f, -0.5f,  0.0f,  0.5f,  0.5f,  0.0f, // bottom left
+            -0.5f,  0.5f,  0.0f,  0.5f,  1.0f,  0.0f, // top left
     };
 
     int[] indices = { // note that we start from 0!
@@ -70,8 +70,12 @@ public class Client implements AutoCloseable {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
         // configure attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, NULL);
+        // vertex attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * Float.BYTES, 0);
         glEnableVertexAttribArray(0);
+        // color attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
+        glEnableVertexAttribArray(1);
 
         // create vao
         vao2 = glGenVertexArrays();
@@ -83,8 +87,12 @@ public class Client implements AutoCloseable {
         glBufferData(GL_ARRAY_BUFFER, vertices2, GL_STATIC_DRAW);
 
         // configure attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, NULL);
+        // vertex attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * Float.BYTES, 0);
         glEnableVertexAttribArray(0);
+        // color attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
+        glEnableVertexAttribArray(1);
 
 
         loop();
@@ -99,12 +107,14 @@ public class Client implements AutoCloseable {
             glClearColor(color, color, color, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
+            program.setUniform1f("time", (System.currentTimeMillis() - 1_648_197_818_412L) / 1000f);
             program.use();
 
             glBindVertexArray(vao);
             glDrawArrays(GL_TRIANGLES, 0, 3);
 //            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+            program2.setUniform1f("time", (System.currentTimeMillis() - 1_648_197_818_412L) / 1000f);
             program2.use();
             glBindVertexArray(vao2);
             glDrawArrays(GL_TRIANGLES, 0, 3);
