@@ -1,28 +1,27 @@
 package com.reine.client;
 
-import com.reine.client.gl.GraphicsLibrary;
-import com.reine.client.gl.Window;
-import com.reine.client.gl.shader.Shader;
-import com.reine.client.gl.shader.ShaderProgram;
+import com.crown.graphic.GraphicsLibrary;
+import com.crown.graphic.Window;
+import com.crown.graphic.shader.Shader;
+import com.crown.graphic.shader.ShaderProgram;
+import org.lwjgl.system.MemoryStack;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.GL33.*;
-import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.stb.STBImage.*;
+import static org.lwjgl.system.MemoryStack.stackPush;
 
 public class Client implements AutoCloseable {
     private final Window window;
 
     float[] vertices = {
-            // vertices           colors
-             0.5f,  0.5f,  0.0f,  1.0f,  1.0f,  0.0f, // top right
-             0.5f, -0.5f,  0.0f,  1.0f,  0.5f,  0.0f, // bottom right
-            -0.5f,  0.5f,  0.0f,  0.5f,  1.0f,  0.0f, // top left
-    };
-
-    float[] vertices2 = {
-            // vertices           colors
-             0.5f, -0.5f,  0.0f,  1.0f,  0.5f,  0.0f, // bottom right
-            -0.5f, -0.5f,  0.0f,  0.5f,  0.5f,  0.0f, // bottom left
-            -0.5f,  0.5f,  0.0f,  0.5f,  1.0f,  0.0f, // top left
+            // vertices       colors            texture uv
+            0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+            0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // bottom left
+            -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // top left
     };
 
     int[] indices = { // note that we start from 0!
@@ -31,13 +30,10 @@ public class Client implements AutoCloseable {
     };
 
     ShaderProgram program;
-    ShaderProgram program2;
     int vbo = 0;
     int vao = 0;
     int ebo = 0;
-
-    int vbo2 = 0;
-    int vao2 = 0;
+    int texture = 0;
 
     public Client() {
         GraphicsLibrary.init();
@@ -46,14 +42,34 @@ public class Client implements AutoCloseable {
     }
 
     public void start() {
+        stbi_set_flip_vertically_on_load(true);
+        try (MemoryStack stack = stackPush()) {
+            IntBuffer width = stack.mallocInt(1);
+            IntBuffer height = stack.mallocInt(1);
+            IntBuffer channels = stack.mallocInt(1);
+            ByteBuffer pixels = stbi_load("assets/textures/img.png", width, height, channels, 4);
+            if (pixels == null) {
+                throw new IllegalStateException("Failed to load texture!");
+            }
+
+            texture = glGenTextures();
+            glBindTexture(GL_TEXTURE_2D, texture);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width.get(), height.get(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+            glGenerateMipmap(GL_TEXTURE_2D);
+            stbi_image_free(pixels);
+        }
+
         Shader vertex = new Shader(getClass().getResource("/shader/vertex.glsl"), true);
         Shader fragment = new Shader(getClass().getResource("/shader/fragment.glsl"), false);
-        Shader fragment2 = new Shader(getClass().getResource("/shader/fragment2.glsl"), false);
         program = new ShaderProgram(vertex, fragment);
-        program2 = new ShaderProgram(vertex, fragment2);
         vertex.delete();
         fragment.delete();
-        fragment2.delete();
 
         // create VAO
         vao = glGenVertexArrays();
@@ -71,29 +87,14 @@ public class Client implements AutoCloseable {
 
         // configure attribute
         // vertex attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * Float.BYTES, 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * Float.BYTES, 0);
         glEnableVertexAttribArray(0);
         // color attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 8 * Float.BYTES, 3 * Float.BYTES);
         glEnableVertexAttribArray(1);
-
-        // create vao
-        vao2 = glGenVertexArrays();
-        glBindVertexArray(vao2);
-
-        // create vbo for vertices
-        vbo2 = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, vbo2);
-        glBufferData(GL_ARRAY_BUFFER, vertices2, GL_STATIC_DRAW);
-
-        // configure attribute
-        // vertex attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * Float.BYTES, 0);
-        glEnableVertexAttribArray(0);
-        // color attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
-        glEnableVertexAttribArray(1);
-
+        // tex coords attribute
+        glVertexAttribPointer(2, 2, GL_FLOAT, false, 8 * Float.BYTES, 6 * Float.BYTES);
+        glEnableVertexAttribArray(2);
 
         loop();
     }
@@ -107,17 +108,14 @@ public class Client implements AutoCloseable {
             glClearColor(color, color, color, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            program.setUniform1f("time", (System.currentTimeMillis() - 1_648_197_818_412L) / 1000f);
             program.use();
+            program.setUniform1f("time", (System.currentTimeMillis() - 1_648_197_818_412L) / 1000f);
 
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, texture);
             glBindVertexArray(vao);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-//            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-            program2.setUniform1f("time", (System.currentTimeMillis() - 1_648_197_818_412L) / 1000f);
-            program2.use();
-            glBindVertexArray(vao2);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+//            glDrawArrays(GL_TRIANGLES, 0, 3);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
             glBindVertexArray(0);
 

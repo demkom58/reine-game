@@ -1,6 +1,6 @@
-package com.reine.client.gl;
+package com.crown.graphic;
 
-import com.reine.client.gl.util.GraphicsError;
+import com.crown.graphic.util.GraphicsError;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;

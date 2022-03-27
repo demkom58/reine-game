@@ -2,15 +2,16 @@
 
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 vertexColor;
+layout (location = 2) in vec2 texCoords;
 
-out vec4 color;
+out vec4 Color;
+out vec2 TexCoords;
 
 uniform float time;
 
 void main()
 {
-    float cos = cos(time);
-    float sin = sin(time);
-    gl_Position = vec4(sin + aPos.x, cos + aPos.y, aPos.z, 1.0);
-    color = vec4(aPos.x, (cos + vertexColor.g) / 2.0f, aPos.z, 1.0f);
+    gl_Position = vec4(aPos, 1.0);
+    Color = vec4(vertexColor, 1.0);
+    TexCoords = texCoords;
 }

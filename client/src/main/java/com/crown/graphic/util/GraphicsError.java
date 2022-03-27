@@ -1,4 +1,4 @@
-package com.reine.client.gl.util;
+package com.crown.graphic.util;
 
 public class GraphicsError extends Error {
     public GraphicsError() {

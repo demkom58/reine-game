@@ -1,4 +1,4 @@
-package com.reine.client.gl.shader;
+package com.crown.graphic.shader;
 
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.MemoryStack;

@@ -1,12 +1,11 @@
-package com.reine.client.gl.shader;
+package com.crown.graphic.shader;
 
 import com.google.common.io.Resources;
-import com.reine.client.gl.util.ShaderCompilationException;
+import com.crown.graphic.util.ShaderCompilationException;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.CharBuffer;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 
