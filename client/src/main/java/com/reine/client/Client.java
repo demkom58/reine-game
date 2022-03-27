@@ -68,8 +68,8 @@ public class Client implements AutoCloseable {
         Shader vertex = new Shader(getClass().getResource("/shader/vertex.glsl"), true);
         Shader fragment = new Shader(getClass().getResource("/shader/fragment.glsl"), false);
         program = new ShaderProgram(vertex, fragment);
-        vertex.delete();
-        fragment.delete();
+        vertex.destroy();
+        fragment.destroy();
 
         // create VAO
         vao = glGenVertexArrays();
@@ -129,6 +129,7 @@ public class Client implements AutoCloseable {
 
     @Override
     public void close() {
+        window.destroy();
         GraphicsLibrary.destroy();
     }
 }

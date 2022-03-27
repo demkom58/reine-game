@@ -1,5 +1,6 @@
 package com.crown.graphic.shader;
 
+import com.crown.graphic.util.Destroyable;
 import com.google.common.io.Resources;
 import com.crown.graphic.util.ShaderCompilationException;
 import org.lwjgl.system.MemoryStack;
@@ -12,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
-public class Shader {
+public class Shader implements Destroyable {
     private final int handle;
 
     public Shader(URL resource, boolean vertex) {
@@ -55,7 +56,8 @@ public class Shader {
         return handle;
     }
 
-    public void delete() {
+    @Override
+    public void destroy() {
         glDeleteShader(handle);
     }
 }

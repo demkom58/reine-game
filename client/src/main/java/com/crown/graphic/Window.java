@@ -1,5 +1,6 @@
 package com.crown.graphic;
 
+import com.crown.graphic.util.Destroyable;
 import com.crown.graphic.util.GraphicsError;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
@@ -14,7 +15,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window {
+public class Window implements Destroyable {
     private long handle;
 
     private String title;
@@ -288,6 +289,7 @@ public class Window {
         }
     }
 
+    @Override
     public void destroy() {
         glfwFreeCallbacks(handle);
         glfwDestroyWindow(handle);

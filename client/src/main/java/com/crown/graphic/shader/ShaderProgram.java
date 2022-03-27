@@ -1,8 +1,9 @@
 package com.crown.graphic.shader;
 
-import org.jetbrains.annotations.Nullable;
+import com.crown.graphic.util.Destroyable;
 import org.lwjgl.system.MemoryStack;
 
+import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -10,12 +11,13 @@ import java.nio.IntBuffer;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
-public class ShaderProgram {
+public class ShaderProgram implements Destroyable {
     private final int handle;
 
     public ShaderProgram(Shader... shaders) {
         this.handle = glCreateProgram();
 
+        //noinspection ForLoopReplaceableByForEach
         for (int i = 0; i < shaders.length; i++) {
             glAttachShader(handle, shaders[i].getHandle());
         }
@@ -214,7 +216,9 @@ public class ShaderProgram {
         glUseProgram(handle);
     }
 
-    public void delete() {
+    @Override
+    public void destroy() {
         glDeleteProgram(handle);
     }
+
 }
