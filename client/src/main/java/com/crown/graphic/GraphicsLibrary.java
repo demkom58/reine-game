@@ -3,6 +3,7 @@ package com.crown.graphic;
 import com.crown.graphic.util.GraphicsError;
 import com.reine.util.OperatingSystem;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryUtil;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -27,6 +28,8 @@ public final class GraphicsLibrary {
         if (OperatingSystem.current() == OperatingSystem.OSX) {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
         }
+
+        STBImage.stbi_set_flip_vertically_on_load(true);
     }
 
     public static void setLogOnError() {

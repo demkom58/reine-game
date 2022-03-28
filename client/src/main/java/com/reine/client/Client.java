@@ -4,6 +4,7 @@ import com.crown.graphic.GraphicsLibrary;
 import com.crown.graphic.Window;
 import com.crown.graphic.shader.Shader;
 import com.crown.graphic.shader.ShaderProgram;
+import com.crown.graphic.texture.Texture2D;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
@@ -30,10 +31,10 @@ public class Client implements AutoCloseable {
     };
 
     ShaderProgram program;
+    Texture2D texture;
     int vbo = 0;
     int vao = 0;
     int ebo = 0;
-    int texture = 0;
 
     public Client() {
         GraphicsLibrary.init();
@@ -42,28 +43,7 @@ public class Client implements AutoCloseable {
     }
 
     public void start() {
-        stbi_set_flip_vertically_on_load(true);
-        try (MemoryStack stack = stackPush()) {
-            IntBuffer width = stack.mallocInt(1);
-            IntBuffer height = stack.mallocInt(1);
-            IntBuffer channels = stack.mallocInt(1);
-            ByteBuffer pixels = stbi_load("assets/textures/img.png", width, height, channels, 4);
-            if (pixels == null) {
-                throw new IllegalStateException("Failed to load texture!");
-            }
-
-            texture = glGenTextures();
-            glBindTexture(GL_TEXTURE_2D, texture);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width.get(), height.get(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-            glGenerateMipmap(GL_TEXTURE_2D);
-            stbi_image_free(pixels);
-        }
+        texture = new Texture2D("assets/textures/img.png", 4);
 
         Shader vertex = new Shader(getClass().getResource("/shader/vertex.glsl"), true);
         Shader fragment = new Shader(getClass().getResource("/shader/fragment.glsl"), false);
@@ -111,8 +91,7 @@ public class Client implements AutoCloseable {
             program.use();
             program.setUniform1f("time", (System.currentTimeMillis() - 1_648_197_818_412L) / 1000f);
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, texture);
+            texture.use(0);
             glBindVertexArray(vao);
 //            glDrawArrays(GL_TRIANGLES, 0, 3);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
