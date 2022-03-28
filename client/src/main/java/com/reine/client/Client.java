@@ -5,14 +5,8 @@ import com.crown.graphic.Window;
 import com.crown.graphic.shader.Shader;
 import com.crown.graphic.shader.ShaderProgram;
 import com.crown.graphic.texture.Texture2D;
-import org.lwjgl.system.MemoryStack;
-
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.GL33.*;
-import static org.lwjgl.stb.STBImage.*;
-import static org.lwjgl.system.MemoryStack.stackPush;
 
 public class Client implements AutoCloseable {
     private final Window window;
@@ -43,7 +37,7 @@ public class Client implements AutoCloseable {
     }
 
     public void start() {
-        texture = new Texture2D("assets/textures/img.png", 4);
+        texture = new Texture2D("assets/textures/img.png");
 
         Shader vertex = new Shader(getClass().getResource("/shader/vertex.glsl"), true);
         Shader fragment = new Shader(getClass().getResource("/shader/fragment.glsl"), false);
