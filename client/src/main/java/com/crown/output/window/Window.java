@@ -1,4 +1,4 @@
-package com.crown.graphic;
+package com.crown.output.window;
 
 import com.crown.graphic.util.Destroyable;
 import com.crown.graphic.util.GraphicsError;
@@ -295,19 +295,19 @@ public class Window implements Destroyable {
         glfwDestroyWindow(handle);
     }
 
-    public void setResizeCallback(GLFWWindowSizeCallbackI callback) {
-        glfwSetWindowSizeCallback(handle, callback);
+    public void setResizeCallback(WindowResizeCallback callback) {
+        glfwSetWindowSizeCallback(handle, (handle, width, height) -> callback.onResize(this, width, height));
     }
 
-    public void setPositionCallback(GLFWWindowPosCallbackI callback) {
-        glfwSetWindowPosCallback(handle, callback);
+    public void setPositionCallback(WindowPositionCallback callback) {
+        glfwSetWindowPosCallback(handle, (handle, x, y) -> callback.onPositionChanged(this, x, y));
     }
 
-    public void setFocusCallback(GLFWWindowFocusCallbackI callback) {
-        glfwSetWindowFocusCallback(handle, callback);
+    public void setFocusCallback(WindowFocusCallback callback) {
+        glfwSetWindowFocusCallback(handle, (handle, focus) -> callback.onFocus(this, focus));
     }
 
-    public void setCloseCallback(GLFWWindowCloseCallbackI callback) {
-        glfwSetWindowCloseCallback(handle, callback);
+    public void setCloseCallback(WindowCloseCallback callback) {
+        glfwSetWindowCloseCallback(handle, handle -> callback.onClose(this));
     }
 }
