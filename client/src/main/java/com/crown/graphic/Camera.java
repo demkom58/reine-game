@@ -3,18 +3,17 @@ package com.crown.graphic;
 import com.crown.output.window.Window;
 import com.crown.util.CrownMath;
 import org.joml.Matrix4f;
-import org.joml.Quaterniond;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import static java.lang.Math.*;
+import static java.lang.Math.toRadians;
 import static org.lwjgl.opengl.GL11.glViewport;
 
 public class Camera {
-    private static final Vector3f CAMERA_UP = new Vector3f();
+    protected static final Matrix4f _ONE_MAIN_MATRIX = CrownMath.createMatrix4fMainOnes();
 
-    protected final Matrix4f oneMainMatrix = CrownMath.createMatrix4fMainOnes();
-    protected final Matrix4f viewMatrix = CrownMath.createMatrix4fMainOnes();
+    protected final Matrix4f _viewMatrix = CrownMath.createMatrix4fMainOnes();
+    protected final Vector3f _moveVec = new Vector3f();
 
     protected final float[] projectionBuffer = new float[16];
     protected final float[] viewBuffer = new float[16];
@@ -35,12 +34,10 @@ public class Camera {
         this.rotation = rotation;
     }
 
-    Vector3f vec = new Vector3f();
     public float[] toViewMatrix() {
-        rotation.transform(position, )
-        oneMainMatrix
-                .rotate(rotation.conjugate(), viewMatrix)
-                .translate(position, viewMatrix)
+        _ONE_MAIN_MATRIX
+                .rotate(rotation, _viewMatrix)
+                .translate(position, _viewMatrix)
                 .get(viewBuffer);
         return viewBuffer;
     }
@@ -57,10 +54,38 @@ public class Camera {
     }
 
     public void move(Vector3f offset) {
-        position.add(offset.rotate(rotation));
+        position.add(rotation.positiveX(_moveVec).mul(offset.x));
+        position.add(rotation.positiveY(_moveVec).mul(offset.y));
+        position.add(rotation.positiveZ(_moveVec).mul(offset.z));
+    }
+
+    public void moveX(float offset) {
+        position.add(rotation.positiveX(_moveVec).mul(offset));
+    }
+
+    public void moveY(float offset) {
+        position.add(rotation.positiveY(_moveVec).mul(offset));
+    }
+
+    public void moveZ(float offset) {
+        position.add(rotation.positiveZ(_moveVec).mul(offset));
     }
 
     public void rotate(float angleX, float angleY, float angleZ) {
-        rotation.rotateXYZ(angleX, angleY, angleZ);
+        rotation.rotateLocalY(angleX)
+                .rotateLocalX(angleY)
+                .rotateLocalZ(angleZ);
+    }
+
+    public void rotateX(float angleX) {
+        rotation.rotateLocalY(angleX);
+    }
+
+    public void rotateY(float angleY) {
+        rotation.rotateLocalX(angleY);
+    }
+
+    public void rotateZ(float angleZ) {
+        rotation.rotateLocalZ(angleZ);
     }
 }

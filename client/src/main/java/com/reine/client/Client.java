@@ -5,7 +5,6 @@ import com.crown.graphic.shader.Shader;
 import com.crown.graphic.shader.ShaderProgram;
 import com.crown.graphic.texture.Texture2D;
 import com.crown.input.keyboard.Keyboard;
-import com.crown.input.mouse.CursorPositionCallback;
 import com.crown.input.mouse.Mouse;
 import com.crown.output.window.Window;
 import com.crown.util.CrownMath;
@@ -140,6 +139,7 @@ public class Client extends CrownGame {
     private final Vector3f up = new Vector3f(0.0f, 1.0f, 0.0f);
 
     Vector3f velocity = new Vector3f();
+
     private void handleInput() {
         final float camSpeed = 0.05f;
         float rotZ = 0.0f;
@@ -174,12 +174,12 @@ public class Client extends CrownGame {
             rotZ += 0.1f;
         }
 
-        if (keyboard.isKeyDown(GLFW_KEY_UP)) {
-            rotY -= 0.1f;
-        }
-
         if (keyboard.isKeyDown(GLFW_KEY_DOWN)) {
             rotY += 0.1f;
+        }
+
+        if (keyboard.isKeyDown(GLFW_KEY_UP)) {
+            rotY -= 0.1f;
         }
 
         if (keyboard.isKeyDown(GLFW_KEY_RIGHT)) {
@@ -194,8 +194,7 @@ public class Client extends CrownGame {
     }
 
     public void onCursorMove(@NotNull Window window, double x, double y) {
-
-        camera.rotate((float) (mouse.getDeltaY() / 300), (float) (mouse.getDeltaX() / -300), 0f);
+        camera.rotate((float)mouse.getDeltaX() / -300f, (float) mouse.getDeltaY() / 300f, 0f);
     }
 
     private void update() {
