@@ -7,6 +7,7 @@ import com.crown.graphic.texture.Texture2D;
 import com.crown.input.keyboard.Keyboard;
 import com.crown.input.mouse.Mouse;
 import com.crown.output.window.Window;
+import com.crown.output.window.WindowFocusCallback;
 import com.crown.util.CrownMath;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -83,16 +84,16 @@ public class Client extends CrownGame {
         keyboard = new Keyboard(window);
 
         mouse.setPositionCallback(this::onCursorMove);
+        window.setFocusCallback(this::onFocus);
     }
 
     public void start() {
         texture = new Texture2D("assets/textures/img.png");
 
-        Shader vertex = new Shader(getClass().getResource("/shader/vertex.glsl"), true);
-        Shader fragment = new Shader(getClass().getResource("/shader/fragment.glsl"), false);
-        program = new ShaderProgram(vertex, fragment);
-        vertex.destroy();
-        fragment.destroy();
+        try (Shader vertex = new Shader(getClass().getResource("/shader/vertex.glsl"), true);
+             Shader fragment = new Shader(getClass().getResource("/shader/fragment.glsl"), false)) {
+            program = new ShaderProgram(vertex, fragment);
+        }
 
         // create VAO
         vao = glGenVertexArrays();
@@ -137,8 +138,7 @@ public class Client extends CrownGame {
 
     private final Vector3f front = new Vector3f(0.0f, 0.0f, -1.0f);
     private final Vector3f up = new Vector3f(0.0f, 1.0f, 0.0f);
-
-    Vector3f velocity = new Vector3f();
+    private final Vector3f velocity = new Vector3f();
 
     private void handleInput() {
         final float camSpeed = 0.05f;
@@ -190,11 +190,24 @@ public class Client extends CrownGame {
             rotX -= 0.1f;
         }
 
+        if (keyboard.isKeyDown(GLFW_KEY_ESCAPE)) {
+            System.exit(0);
+        }
+
         camera.rotate(rotX, rotY, rotZ);
     }
 
     public void onCursorMove(@NotNull Window window, double x, double y) {
-        camera.rotate((float)mouse.getDeltaX() / -300f, (float) mouse.getDeltaY() / 300f, 0f);
+        camera.rotate((float) mouse.getDeltaX() / 300f, (float) mouse.getDeltaY() / -300f, 0f);
+    }
+
+    public void onFocus(@NotNull Window window, boolean focused) {
+        if (focused) {
+            mouse.grabMouseCursor();
+        } else {
+            mouse.setCursorInCenter();
+            mouse.ungrabMouseCursor();
+        }
     }
 
     private void update() {

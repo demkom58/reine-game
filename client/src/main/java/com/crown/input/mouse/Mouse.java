@@ -52,6 +52,23 @@ public class Mouse {
         this.entered = entered;
     }
 
+    public void grabMouseCursor() {
+        GLFW.glfwSetInputMode(window.getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
+        this.deltaX = 0;
+        this.deltaY = 0;
+    }
+
+    public void ungrabMouseCursor() {
+        final Dimension size = window.getSize();
+        setCursorPosition(size.getWidth() / 2d, size.getHeight() / 2d);
+        GLFW.glfwSetInputMode(window.getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+    }
+
+    public void setCursorInCenter() {
+        final Dimension size = window.getSize();
+        setCursorPosition(size.getWidth() / 2D, size.getHeight() / 2D);
+    }
+
     public void setButtonCallback(@Nullable final MouseButtonCallback callback) {
         GLFW.glfwSetMouseButtonCallback(window.getHandle(), callback == null
                 ? null
