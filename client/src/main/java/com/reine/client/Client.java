@@ -7,8 +7,6 @@ import com.crown.graphic.texture.Texture2D;
 import com.crown.input.keyboard.Keyboard;
 import com.crown.input.mouse.Mouse;
 import com.crown.output.window.Window;
-import com.crown.output.window.WindowFocusCallback;
-import com.crown.util.CrownMath;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -18,9 +16,9 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL33.*;
 
 public class Client extends CrownGame {
-    private final Matrix4f oneMainMatrix = CrownMath.createMatrix4fMainOnes();
+    private final Matrix4f oneMainMatrix = new Matrix4f().identity();
     private final float[] modelBuffer = new float[4 * 4];
-    private final Matrix4f modelMatrix = CrownMath.createMatrix4fMainOnes();
+    private final Matrix4f modelMatrix = new Matrix4f().identity();
 
 
     float[] vertices = {

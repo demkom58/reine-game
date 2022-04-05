@@ -1,7 +1,6 @@
 package com.crown.graphic;
 
 import com.crown.output.window.Window;
-import com.crown.util.CrownMath;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -10,9 +9,9 @@ import static java.lang.Math.toRadians;
 import static org.lwjgl.opengl.GL11.glViewport;
 
 public class Camera {
-    protected static final Matrix4f _ONE_MAIN_MATRIX = CrownMath.createMatrix4fMainOnes();
+    protected static final Matrix4f _ONE_MAIN_MATRIX = new Matrix4f().identity();
 
-    protected final Matrix4f _viewMatrix = CrownMath.createMatrix4fMainOnes();
+    protected final Matrix4f _viewMatrix = new Matrix4f().identity();
     protected final Vector3f _moveVec = new Vector3f();
 
     protected final float[] projectionBuffer = new float[16];
@@ -54,9 +53,9 @@ public class Camera {
     }
 
     public void move(Vector3f offset) {
-        position.add(rotation.positiveX(_moveVec).mul(offset.x));
-        position.add(rotation.positiveY(_moveVec).mul(offset.y));
-        position.add(rotation.positiveZ(_moveVec).mul(offset.z));
+        position.add(rotation.positiveX(_moveVec).mul(offset.x))
+                .add(rotation.positiveY(_moveVec).mul(offset.y))
+                .add(rotation.positiveZ(_moveVec).mul(offset.z));
     }
 
     public void moveX(float offset) {
