@@ -221,8 +221,6 @@ public class Client extends CrownGame {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         program.use();
-        program.setUniform1f("time", (float) ((System.currentTimeMillis() / 1000d) - 1_648_197_818D));
-
         oneMainMatrix
                 .translate(modelPos, modelMatrix)
                 .scale(modelScale, modelMatrix)
