@@ -2,7 +2,7 @@ package com.crown.output.window;
 
 import com.crown.graphic.util.Destroyable;
 import com.crown.graphic.util.GraphicsError;
-import org.lwjgl.glfw.*;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;

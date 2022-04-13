@@ -4,6 +4,8 @@ import com.crown.graphic.CrownGame;
 import com.crown.graphic.shader.Shader;
 import com.crown.graphic.shader.ShaderProgram;
 import com.crown.graphic.texture.Texture2D;
+import com.crown.graphic.texture.TextureManager;
+import com.crown.graphic.unit.Mesh;
 import com.crown.input.keyboard.Keyboard;
 import com.crown.input.mouse.Mouse;
 import com.crown.output.window.Window;
@@ -11,6 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+
+import java.io.File;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL33.*;
@@ -20,60 +24,47 @@ public class Client extends CrownGame {
     private final float[] modelBuffer = new float[4 * 4];
     private final Matrix4f modelMatrix = new Matrix4f().identity();
 
-
     float[] vertices = {
-            // vertices         texture uv
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-            0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-            -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
+            -0.5f, 0.5f, 0.5f,
+            -0.5f, -0.5f, 0.5f,
+            0.5f, -0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
+
+            -0.5f, 0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
     };
 
-//    int[] indices = { // note that we start from 0!
-//            0, 1, 3, // first triangle
-//            1, 2, 3 // second triangle
-//    };
+    int[] indices = {
+            0, 1, 3, 3, 1, 2, // Front face
+            4, 0, 3, 5, 4, 3, // Top Face
+            3, 2, 7, 5, 3, 7, // Right face
+            6, 1, 0, 6, 0, 4, // Left face
+            2, 1, 6, 2, 6, 7, // Bottom face
+            7, 6, 4, 7, 4, 5, // Back face
+    };
+
+    float[] texcoords = {
+            0.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            1.0f, 0.0f,
+
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+    };
 
     ShaderProgram program;
     Texture2D texture;
-    int vbo = 0;
-    int vao = 0;
-//    int ebo = 0;
+    Mesh mesh;
 
     Mouse mouse;
     Keyboard keyboard;
+
+    TextureManager textureManager = new TextureManager();
 
     public Client() {
         super(400, 300, "Reine");
@@ -86,35 +77,27 @@ public class Client extends CrownGame {
     }
 
     public void start() {
-        texture = new Texture2D("assets/textures/img.png");
-
-        try (Shader vertex = new Shader(getClass().getResource("/shader/vertex.glsl"), true);
-             Shader fragment = new Shader(getClass().getResource("/shader/fragment.glsl"), false)) {
-            program = new ShaderProgram(vertex, fragment);
+        File texturesDirectory = new File("assets/textures/");
+        File[] textures = texturesDirectory.listFiles();
+        if (textures == null) {
+            throw new Error("No textures!");
         }
 
-        // create VAO
-        vao = glGenVertexArrays();
-        glBindVertexArray(vao);
+        for (File tex : textures) {
+            if (tex.isDirectory()) {
+                continue;
+            }
 
-        // bind to VAO vertices using VBO
-        vbo = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+            textureManager.registerTexture(tex.getName());
+        }
 
-//        // bind to VAO indices using EBO
-//        ebo = glGenBuffers();
-//        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-//        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+        textureManager.buildAtlas();
+        mesh = new Mesh(vertices, indices, texcoords, texture);
 
-        // configure attribute
-        // vertex attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * Float.BYTES, 0);
-        glEnableVertexAttribArray(0);
-
-        // tex coords attribute
-        glVertexAttribPointer(1, 2, GL_FLOAT, false, 5 * Float.BYTES, 3 * Float.BYTES);
-        glEnableVertexAttribArray(1);
+        try (Shader vertex = new Shader(getClass().getResource("/shader/vertex.vsh"), true);
+             Shader fragment = new Shader(getClass().getResource("/shader/fragment.fsh"), false)) {
+            program = new ShaderProgram(vertex, fragment);
+        }
 
         loop();
     }
@@ -232,11 +215,10 @@ public class Client extends CrownGame {
         program.setUniformMatrix4fv("projection", false, camera.toProjectionMatrix());
 
         texture.use(0);
-        glBindVertexArray(vao);
-        glEnable(GL_DEPTH_TEST);
-        glDrawArrays(GL_TRIANGLES, 0, vertices.length / 5);
-//            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+        mesh.bind();
+        glEnable(GL_DEPTH_TEST);
+        mesh.draw();
         glBindVertexArray(0);
 
         window.update();
