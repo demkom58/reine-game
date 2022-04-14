@@ -142,26 +142,19 @@ public class AtlasImage implements Destroyable {
         final int tX = dim.x();
         final int tY = dim.y();
 
-        int lastIndexY = height - 1;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 int rgba = texture.getRGBA(x, y);
-                atlas.setRGBA(tX + x, tY + (lastIndexY - y), rgba);
+                atlas.setRGBA(tX + x, tY + y, rgba);
             }
         }
     }
 
     private static PixelFormat fitFormat(Collection<ImageInfo> textures) {
-        Map<ImageInfo, Integer> formats = new HashMap<>();
-        for (ImageInfo data : textures) {
-            formats.compute(data, (k, i) -> (i == null ? 0 : i) + 1);
-        }
-
-        return formats.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
+        return textures.stream()
+                .max(Comparator.comparingInt(a -> a.format().channels))
                 .map(ImageInfo::format)
-                .orElse(PixelFormat.RGBA);
+                .orElseThrow();
     }
 
     @Override
