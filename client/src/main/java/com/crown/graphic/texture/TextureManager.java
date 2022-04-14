@@ -1,7 +1,10 @@
 package com.crown.graphic.texture;
 
-import com.crown.resource.image.*;
-import org.joml.Vector2d;
+import com.crown.resource.image.AtlasDimension;
+import com.crown.resource.image.AtlasImage;
+import com.crown.resource.image.ImageInfo;
+import com.crown.resource.image.ImageResource;
+import org.joml.Vector2f;
 import org.lwjgl.system.MemoryStack;
 
 import javax.imageio.ImageIO;
@@ -24,7 +27,7 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 public class TextureManager {
     private final File texturesRoot = new File("assets/textures/");
     private final Set<ImageResource> textureResources = new HashSet<>();
-
+    private final Map<String, AtlasDimension> nameDim = new HashMap<>();
     private TextureAtlas2D atlas;
     private boolean atlasChanged = true;
 
@@ -38,15 +41,15 @@ public class TextureManager {
         }
     }
 
-    public double u(String id, int x) {
+    public float u(String id, int x) {
         return atlas.u(id, x);
     }
 
-    public double v(String id, int v) {
+    public float v(String id, int v) {
         return atlas.v(id, v);
     }
 
-    public Vector2d uv(String id, int u, int v) {
+    public Vector2f uv(String id, int u, int v) {
         return atlas.uv(id, u, v);
     }
 
@@ -71,14 +74,17 @@ public class TextureManager {
             try (AtlasImage atlasImage = futureAtlas.get()) {
                 long generatedFor = System.currentTimeMillis() - genStart;
                 System.out.println("Atlas generation done for " + (generatedFor / 1000f) + "sec");
+
+                nameDim.clear();
+                nameDim.putAll(atlasImage.getPositions());
                 // todo: add caching
-//                if (!textureResources.isEmpty()) {
-//                    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("atlas.png"))) {
-//                        ImageIO.write(atlasImage.getData().toBufferedImage(), "png", out);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
+                if (!textureResources.isEmpty()) {
+                    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("atlas.png"))) {
+                        ImageIO.write(atlasImage.getData().toBufferedImage(), "png", out);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 atlas = TextureAtlas2D.from(atlasImage);
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
@@ -90,5 +96,23 @@ public class TextureManager {
 
     public boolean isAtlasChanged() {
         return atlasChanged;
+    }
+
+    public void atlasify(String name, float[] texcoords) {
+        AtlasDimension dimension = nameDim.get(name);
+
+        for (int i = 0; i < texcoords.length / 2; i++) {
+            int uIdx = i * 2;
+            int vIdx = uIdx + 1;
+
+            int u = (int) (texcoords[uIdx] * dimension.width());
+            int v = (int) (texcoords[vIdx] * dimension.height());
+            texcoords[uIdx] = atlas.u(name, u);
+            texcoords[vIdx] = atlas.v(name, v);
+        }
+    }
+
+    public TextureAtlas2D getAtlas() {
+        return atlas;
     }
 }

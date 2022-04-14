@@ -69,7 +69,7 @@ public class Mesh {
         }
     }
 
-    public Mesh(float[] positions, float[] texCoords, Texture2D texture) {
+    public Mesh(float[] positions, float[] texCoords) {
         idxVboId = -1;
         vertexCount = positions.length / 3;
 
@@ -94,7 +94,7 @@ public class Mesh {
         }
     }
 
-    public Mesh(float[] positions, int[] indices, float[] texCoords, Texture2D texture) {
+    public Mesh(float[] positions, int[] indices, float[] texCoords) {
         vertexCount = indices.length;
 
         try (MemoryStack stack = stackPush()) {

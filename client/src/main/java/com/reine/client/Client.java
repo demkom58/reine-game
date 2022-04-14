@@ -58,7 +58,6 @@ public class Client extends CrownGame {
     };
 
     ShaderProgram program;
-    Texture2D texture;
     Mesh mesh;
 
     Mouse mouse;
@@ -92,7 +91,8 @@ public class Client extends CrownGame {
         }
 
         textureManager.buildAtlas();
-        mesh = new Mesh(vertices, indices, texcoords, texture);
+        textureManager.atlasify("img.png", texcoords);
+        mesh = new Mesh(vertices, indices, texcoords);
 
         try (Shader vertex = new Shader(getClass().getResource("/shader/vertex.vsh"), true);
              Shader fragment = new Shader(getClass().getResource("/shader/fragment.fsh"), false)) {
@@ -214,7 +214,7 @@ public class Client extends CrownGame {
         program.setUniformMatrix4fv("view", false, camera.toViewMatrix());
         program.setUniformMatrix4fv("projection", false, camera.toProjectionMatrix());
 
-        texture.use(0);
+        textureManager.getAtlas().use(0);
 
         mesh.bind();
         glEnable(GL_DEPTH_TEST);

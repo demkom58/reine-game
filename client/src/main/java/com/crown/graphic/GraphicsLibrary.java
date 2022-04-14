@@ -28,8 +28,6 @@ public final class GraphicsLibrary {
         if (OperatingSystem.current() == OperatingSystem.OSX) {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
         }
-
-        STBImage.stbi_set_flip_vertically_on_load(true);
     }
 
     public static void setLogOnError() {
