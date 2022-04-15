@@ -111,7 +111,7 @@ public class AtlasImage implements Destroyable {
             rects.flip();
 
             STBRPContext context = STBRPContext.calloc(stack);
-            nodes = STBRPNode.calloc(atlasMaxWidth * atlasMaxHeight);
+            nodes = STBRPNode.calloc(textures.size());
 
             stbrp_init_target(context, atlasMaxWidth, atlasMaxHeight, nodes);
             stbrp_pack_rects(context, rects);
