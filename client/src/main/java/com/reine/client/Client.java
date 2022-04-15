@@ -79,6 +79,7 @@ public class Client extends CrownGame {
 
     private void loop() {
         window.show();
+        window.focus();
 
         while (!window.isShouldClose()) {
             handleInput();

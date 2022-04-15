@@ -20,6 +20,7 @@ public class Mouse {
     public double deltaY;
 
     private boolean entered;
+    private boolean grabbed = false;
 
     public Mouse(@NotNull final Window window) {
         this.window = window;
@@ -41,6 +42,10 @@ public class Mouse {
 
         this.x = x;
         this.y = y;
+
+        if (grabbed) {
+            setCursorInCenter();
+        }
     }
 
     private void onEnteredWithCallback(long window, boolean entered) {
@@ -56,12 +61,18 @@ public class Mouse {
         GLFW.glfwSetInputMode(window.getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
         this.deltaX = 0;
         this.deltaY = 0;
+        this.grabbed = true;
     }
 
     public void ungrabMouseCursor() {
         final Dimension size = window.getSize();
         setCursorPosition(size.getWidth() / 2d, size.getHeight() / 2d);
         GLFW.glfwSetInputMode(window.getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+        this.grabbed = false;
+    }
+
+    public boolean isGrabbed() {
+        return grabbed;
     }
 
     public void setCursorInCenter() {
