@@ -24,36 +24,81 @@ public class Client extends CrownGame {
     private final Matrix4f modelMatrix = new Matrix4f().identity();
 
     float[] vertices = {
-            -0.5f, 0.5f, 0.5f,
+            -0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
+            -0.5f, 0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,
             -0.5f, -0.5f, 0.5f,
             0.5f, -0.5f, 0.5f,
             0.5f, 0.5f, 0.5f,
-
+            0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
             -0.5f, 0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
             0.5f, 0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
             -0.5f, -0.5f, -0.5f,
             0.5f, -0.5f, -0.5f,
-    };
-
-    int[] indices = {
-            0, 1, 3, 3, 1, 2, // Front face
-            4, 0, 3, 5, 4, 3, // Top Face
-            3, 2, 7, 5, 3, 7, // Right face
-            6, 1, 0, 6, 0, 4, // Left face
-            2, 1, 6, 2, 6, 7, // Bottom face
-            7, 6, 4, 7, 4, 5, // Back face
+            0.5f, -0.5f, 0.5f,
+            0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, -0.5f,
+            -0.5f, 0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
+            0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, -0.5f,
     };
 
     float[] texcoords = {
             0.0f, 0.0f,
+            1.0f, 0.0f,
+            1.0f, 1.0f,
+            1.0f, 1.0f,
+            0.0f, 1.0f,
+            0.0f, 0.0f,
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+            1.0f, 1.0f,
+            1.0f, 1.0f,
+            0.0f, 1.0f,
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+            1.0f, 1.0f,
+            0.0f, 1.0f,
+            0.0f, 1.0f,
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+            1.0f, 0.0f,
+            1.0f, 1.0f,
+            0.0f, 1.0f,
+            0.0f, 1.0f,
+            0.0f, 0.0f,
+            1.0f, 0.0f,
             0.0f, 1.0f,
             1.0f, 1.0f,
             1.0f, 0.0f,
-
+            1.0f, 0.0f,
+            0.0f, 0.0f,
+            0.0f, 1.0f,
             0.0f, 1.0f,
             1.0f, 1.0f,
+            1.0f, 0.0f,
+            1.0f, 0.0f,
+            0.0f, 0.0f,
             0.0f, 1.0f,
-            1.0f, 1.0f,
     };
 
     ShaderProgram program;
@@ -90,8 +135,8 @@ public class Client extends CrownGame {
         }
 
         textureManager.buildAtlas();
-        textureManager.atlasify("img.png", texcoords);
-        mesh = new Mesh(vertices, indices, texcoords);
+        textureManager.atlasify("sea_lantern.png", texcoords);
+        mesh = new Mesh(vertices, texcoords);
 
         try (Shader vertex = new Shader(getClass().getResource("/shader/vertex.vsh"), true);
              Shader fragment = new Shader(getClass().getResource("/shader/fragment.fsh"), false)) {
