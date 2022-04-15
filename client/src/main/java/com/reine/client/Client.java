@@ -3,7 +3,6 @@ package com.reine.client;
 import com.crown.graphic.CrownGame;
 import com.crown.graphic.shader.Shader;
 import com.crown.graphic.shader.ShaderProgram;
-import com.crown.graphic.texture.Texture2D;
 import com.crown.graphic.texture.TextureManager;
 import com.crown.graphic.unit.Mesh;
 import com.crown.input.keyboard.Keyboard;
@@ -110,7 +109,7 @@ public class Client extends CrownGame {
     private void loop() {
         window.show();
 
-        while (!window.shouldClose()) {
+        while (!window.isShouldClose()) {
             handleInput();
             update();
             render();
@@ -172,7 +171,7 @@ public class Client extends CrownGame {
         }
 
         if (keyboard.isKeyDown(GLFW_KEY_ESCAPE)) {
-            System.exit(0);
+            window.setShouldClose(true);
         }
 
         camera.rotate(rotX, rotY, rotZ);

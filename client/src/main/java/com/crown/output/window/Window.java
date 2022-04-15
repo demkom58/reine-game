@@ -158,8 +158,12 @@ public class Window implements Destroyable {
         return glfwGetWindowAttrib(handle, GLFW_SCALE_TO_MONITOR) == GLFW_TRUE;
     }
 
-    public boolean shouldClose() {
+    public boolean isShouldClose() {
         return glfwWindowShouldClose(handle);
+    }
+
+    public void setShouldClose(boolean shouldClose) {
+        glfwSetWindowShouldClose(handle, shouldClose);
     }
 
     public void makeCurrentContext() {
