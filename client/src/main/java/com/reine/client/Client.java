@@ -7,6 +7,7 @@ import com.crown.graphic.texture.TextureManager;
 import com.crown.graphic.unit.Mesh;
 import com.crown.input.keyboard.Keyboard;
 import com.crown.input.mouse.Mouse;
+import com.crown.model.CubeFactory;
 import com.crown.output.window.Window;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -22,84 +23,6 @@ public class Client extends CrownGame {
     private final Matrix4f oneMainMatrix = new Matrix4f().identity();
     private final float[] modelBuffer = new float[4 * 4];
     private final Matrix4f modelMatrix = new Matrix4f().identity();
-
-    float[] vertices = {
-            -0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-            -0.5f, 0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, 0.5f,
-            0.5f, -0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            -0.5f, -0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            0.5f, 0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            -0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, 0.5f,
-            0.5f, -0.5f, 0.5f,
-            -0.5f, -0.5f, 0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, -0.5f,
-    };
-
-    float[] texcoords = {
-            0.0f, 0.0f,
-            1.0f, 0.0f,
-            1.0f, 1.0f,
-            1.0f, 1.0f,
-            0.0f, 1.0f,
-            0.0f, 0.0f,
-            0.0f, 0.0f,
-            1.0f, 0.0f,
-            1.0f, 1.0f,
-            1.0f, 1.0f,
-            0.0f, 1.0f,
-            0.0f, 0.0f,
-            1.0f, 0.0f,
-            1.0f, 1.0f,
-            0.0f, 1.0f,
-            0.0f, 1.0f,
-            0.0f, 0.0f,
-            1.0f, 0.0f,
-            1.0f, 0.0f,
-            1.0f, 1.0f,
-            0.0f, 1.0f,
-            0.0f, 1.0f,
-            0.0f, 0.0f,
-            1.0f, 0.0f,
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f,
-            1.0f, 0.0f,
-            0.0f, 0.0f,
-            0.0f, 1.0f,
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f,
-            1.0f, 0.0f,
-            0.0f, 0.0f,
-            0.0f, 1.0f,
-    };
 
     ShaderProgram program;
     Mesh mesh;
@@ -134,9 +57,12 @@ public class Client extends CrownGame {
             textureManager.registerTexture(tex.getName());
         }
 
+        float[] vertices = CubeFactory.vertices();
+        float[] tex = CubeFactory.texAllSides();
+
         textureManager.buildAtlas();
-        textureManager.atlasify("sea_lantern.png", texcoords);
-        mesh = new Mesh(vertices, texcoords);
+        textureManager.atlasify("sea_lantern.png", tex);
+        mesh = new Mesh(vertices, tex);
 
         try (Shader vertex = new Shader(getClass().getResource("/shader/vertex.vsh"), true);
              Shader fragment = new Shader(getClass().getResource("/shader/fragment.fsh"), false)) {
