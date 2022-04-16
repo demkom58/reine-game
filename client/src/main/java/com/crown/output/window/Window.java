@@ -73,7 +73,6 @@ public class Window implements Destroyable {
     public void focus() {
         glfwFocusWindow(handle);
     }
-
     public boolean isIconified() {
         return glfwGetWindowAttrib(handle, GLFW_ICONIFIED) == GLFW_TRUE;
     }
