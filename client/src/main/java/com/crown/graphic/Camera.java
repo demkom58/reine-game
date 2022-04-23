@@ -70,6 +70,10 @@ public class Camera {
         position.add(rotation.positiveZ(_moveVec).mul(offset));
     }
 
+    public void setRotation(float angle, float x, float y, float z) {
+        rotation.setAngleAxis(angle, x, y, z);
+    }
+
     public void rotate(float angleX, float angleY, float angleZ) {
         rotation.rotateLocalY(angleX)
                 .rotateLocalX(angleY)
@@ -86,5 +90,13 @@ public class Camera {
 
     public void rotateZ(float angleZ) {
         rotation.rotateLocalZ(angleZ);
+    }
+
+    public Vector3f getPosition() {
+        return position;
+    }
+
+    public Quaternionf getRotation() {
+        return rotation;
     }
 }

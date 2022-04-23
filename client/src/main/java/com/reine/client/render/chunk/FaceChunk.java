@@ -1,0 +1,104 @@
+package com.reine.client.render.chunk;
+
+import com.crown.graphic.util.Destroyable;
+import com.reine.util.WorldSide;
+import com.reine.block.Block;
+import com.reine.world.chunk.IChunk;
+import org.joml.Vector3i;
+import org.lwjgl.system.MemoryUtil;
+
+import java.nio.ByteBuffer;
+import java.util.EnumMap;
+import java.util.Map;
+
+public class FaceChunk implements Destroyable {
+    private final EnumMap<RenderPass, ByteBuffer> passBuffers = new EnumMap<>(Map.of(
+            RenderPass.SOLID, MemoryUtil.memCalloc(IChunk.CHUNK_SIZE),
+            RenderPass.TRANSPARENT, MemoryUtil.memCalloc(IChunk.CHUNK_SIZE)
+    ));
+
+    public void singleUpdate(IChunk chunk, int x, int y, int z) {
+        for (RenderPass pass : RenderPass.values()) {
+            updateBlock(pass, chunk, x, y, z, passBuffers.get(pass));
+        }
+    }
+
+    public void update(IChunk chunk, int x, int y, int z) {
+        for (RenderPass pass : RenderPass.values()) {
+            final ByteBuffer passBuffer = passBuffers.get(pass);
+            updateBlock(pass, chunk, x, y, z, passBuffer);
+            updateBlock(pass, chunk, x + 1, y, z, passBuffer);
+            updateBlock(pass, chunk, x - 1, y, z, passBuffer);
+            updateBlock(pass, chunk, x, y + 1, z, passBuffer);
+            updateBlock(pass, chunk, x, y - 1, z, passBuffer);
+            updateBlock(pass, chunk, x, y, z + 1, passBuffer);
+            updateBlock(pass, chunk, x, y, z - 1, passBuffer);
+        }
+    }
+
+    public ByteBuffer getBuffer(RenderPass pass) {
+        return passBuffers.get(pass);
+    }
+
+    @Override
+    public void destroy() {
+        passBuffers.values().forEach(MemoryUtil::memFree);
+    }
+
+    public static FaceChunk build(IChunk chunk) {
+        final FaceChunk faceChunk = new FaceChunk();
+
+        for (RenderPass pass : RenderPass.values()) {
+            final ByteBuffer buffer = faceChunk.getBuffer(pass);
+
+            for (int x = 0; x < IChunk.CHUNK_WIDTH; x++) {
+                for (int y = 0; y < IChunk.CHUNK_HEIGHT; y++) {
+                    for (int z = 0; z < IChunk.CHUNK_LENGTH; z++) {
+                        updateBlock(pass, chunk, x, y, z, buffer);
+                    }
+                }
+            }
+        }
+
+        return faceChunk;
+    }
+
+    private static void updateBlock(RenderPass pass, IChunk chunk, int x, int y, int z, ByteBuffer buffer) {
+        int index = IChunk.idx(x, y, z);
+        int blockId = chunk.getBlockId(index);
+        if (blockId == 0) {
+            buffer.put(index, (byte) 0);
+            return;
+        }
+
+        final Block block = Block.byId(blockId);
+        final boolean transparent = block.isTransparent();
+        if ((pass == RenderPass.SOLID && !transparent) || (pass == RenderPass.TRANSPARENT && transparent)) {
+            byte sidesMask = 0;
+
+            // fill visibility of all sides for current block
+            for (WorldSide side : WorldSide.values()) {
+                final Block neighbor = getNeighborBlock(chunk, x, y, z, side);
+                if (block != neighbor && neighbor.isTransparent()) {
+                    sidesMask |= side.mask();
+                }
+            }
+
+            // calc index of block and set calculated mask
+            buffer.put(index, sidesMask);
+        }
+    }
+
+    private static Block getNeighborBlock(IChunk chunk, int x, int y, int z, WorldSide side) {
+        Vector3i offset = side.facingVector();
+        x += offset.x;
+        y += offset.y;
+        z += offset.z;
+
+        if (x < 0 || y < 0 || z < 0 || x >= IChunk.CHUNK_WIDTH || y >= IChunk.CHUNK_HEIGHT || z >= IChunk.CHUNK_LENGTH) {
+            return Block.AIR;
+        }
+
+        return Block.byId(chunk.getBlockId(x, y, z));
+    }
+}

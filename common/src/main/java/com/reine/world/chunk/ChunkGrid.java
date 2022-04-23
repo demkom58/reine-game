@@ -1,32 +1,33 @@
 package com.reine.world.chunk;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ChunkGrid {
-    private final Map<ChunkPosition, SimpleChunk> chunkMap = new HashMap<>();
+    private final Map<ChunkPosition, Chunk> chunkMap = new HashMap<>();
 
-    public SimpleChunk getChunk(int x, int y, int z) {
+    public Chunk getChunk(int x, int y, int z) {
         return chunkMap.get(ChunkPosition.fromGlobal(x, y, z));
     }
 
-    public void setChunk(int x, int y, int z, SimpleChunk chunk) {
+    public void setChunk(int x, int y, int z, Chunk chunk) {
         chunkMap.put(ChunkPosition.fromGlobal(x, y, z), chunk);
     }
 
     public void setBlockId(int x, int y, int z, int blockId) {
-        ChunkPosition key = ChunkPosition.fromGlobal(x, y, z);
+        ChunkPosition pos = ChunkPosition.fromGlobal(x, y, z);
 
-        SimpleChunk simpleChunk = chunkMap.get(key);
-        if (simpleChunk == null) {
-            chunkMap.put(key, simpleChunk = new SimpleChunk(key.x(), key.y(), key.z()));
+        Chunk chunk = chunkMap.get(pos);
+        if (chunk == null || chunk.isEmpty()) {
+            chunkMap.put(pos, chunk = new Chunk(pos));
         }
 
-        simpleChunk.setBlockId(
-                x & Chunk.CHUNK_COORDINATE_MASK,
-                y & Chunk.CHUNK_COORDINATE_MASK,
-                z & Chunk.CHUNK_COORDINATE_MASK,
+        chunk.setBlockId(
+                x & IChunk.CHUNK_COORDINATE_MASK,
+                y & IChunk.CHUNK_COORDINATE_MASK,
+                z & IChunk.CHUNK_COORDINATE_MASK,
                 blockId
         );
     }
@@ -34,19 +35,23 @@ public class ChunkGrid {
     public int getBlockId(int x, int y, int z) {
         ChunkPosition key = ChunkPosition.fromGlobal(x, y, z);
 
-        SimpleChunk simpleChunk = chunkMap.get(key);
+        Chunk simpleChunk = chunkMap.get(key);
         if (simpleChunk == null) {
             return 0;
         }
 
         return simpleChunk.getBlockId(
-                x & Chunk.CHUNK_COORDINATE_MASK,
-                y & Chunk.CHUNK_COORDINATE_MASK,
-                z & Chunk.CHUNK_COORDINATE_MASK
+                x & IChunk.CHUNK_COORDINATE_MASK,
+                y & IChunk.CHUNK_COORDINATE_MASK,
+                z & IChunk.CHUNK_COORDINATE_MASK
         );
     }
 
-    public Collection<SimpleChunk> loadedChunks() {
+    public Map<ChunkPosition, Chunk> getChunkMap() {
+        return Collections.unmodifiableMap(this.chunkMap);
+    }
+
+    public Collection<Chunk> loadedChunks() {
         return chunkMap.values();
     }
 }

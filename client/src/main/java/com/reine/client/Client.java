@@ -9,12 +9,12 @@ import com.crown.input.keyboard.Keyboard;
 import com.crown.input.mouse.Mouse;
 import com.crown.output.window.Window;
 import com.reine.block.Block;
+import com.reine.client.render.Renderer;
 import com.reine.client.render.block.BlockModelManager;
-import com.reine.world.chunk.Chunk;
+import com.reine.client.render.chunk.ChunkRenderer;
 import com.reine.world.chunk.ChunkGrid;
-import com.reine.world.chunk.SimpleChunk;
+import com.reine.world.chunk.Chunk;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -25,17 +25,16 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL33.*;
 
 public class Client extends CrownGame {
-    private final Matrix4f oneMainMatrix = new Matrix4f().identity();
-    private final float[] modelBuffer = new float[4 * 4];
-    private final Matrix4f modelMatrix = new Matrix4f().identity();
 
     ShaderProgram program;
 
     Mouse mouse;
     Keyboard keyboard;
 
+    Renderer renderer = new Renderer();
     TextureManager textureManager = new TextureManager();
     BlockModelManager blockModelManager = new BlockModelManager();
+    ChunkRenderer chunkRenderer;
 
     ChunkGrid chunkGrid = new ChunkGrid();
 
@@ -66,25 +65,28 @@ public class Client extends CrownGame {
 
         textureManager.buildAtlas();
         blockModelManager.reload(textureManager);
+        chunkRenderer = new ChunkRenderer(renderer, textureManager);
 
         try (Shader vertex = new Shader(getClass().getResource("/shader/vertex.vsh"), true);
              Shader fragment = new Shader(getClass().getResource("/shader/fragment.fsh"), false)) {
             program = new ShaderProgram(vertex, fragment);
         }
 
-        for (int x = 0; x < 64; x++) {
-            for (int y = 0; y < 64; y++) {
-                for (int z = 0; z < 64; z++) {
-                    chunkGrid.setBlockId(x, y, z, Block.BOOKSHELF.getId());
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 16; y++) {
+                for (int z = 0; z < 16; z++) {
+//                    chunkGrid.setBlockId(x, y, z, Block.BOOKSHELF.getId());
+                    chunkGrid.setBlockId(x, y, z, (int) (Math.random() * Block.values().size()));
                 }
             }
         }
+        chunkGrid.loadedChunks().forEach(chunkRenderer::setChunk);
 
         loop();
     }
 
     float cosTime;
-    Quaternionf modelRotation = new Quaternionf().rotateXYZ(45, 0, 0);
+    Quaternionf modelRotation = new Quaternionf();
 
     private void loop() {
         window.show();
@@ -160,6 +162,7 @@ public class Client extends CrownGame {
         }
 
         camera.rotate(rotX, rotY, rotZ);
+        System.out.println("Cam pos: " + camera.getPosition() + ", Cam angle: " + camera.getRotation());
     }
 
     public void onCursorMove(@NotNull Window window, double x, double y) {
@@ -191,40 +194,10 @@ public class Client extends CrownGame {
         program.setUniformMatrix4fv("view", false, camera.toViewMatrix());
         program.setUniformMatrix4fv("projection", false, camera.toProjectionMatrix());
 
-        textureManager.getAtlas().use(0);
-
-        glEnable(GL_DEPTH_TEST);
-
-        Collection<SimpleChunk> chunks = chunkGrid.loadedChunks();
-
-
-        for (SimpleChunk chunk : chunks) {
-            for (int x = 0; x < 16; x++) {
-                for (int y = 0; y < 16; y++) {
-                    for (int z = 0; z < 16; z++) {
-                        int blockId = chunk.getBlockId(x, y, z);
-                        if (blockId == 0) {
-                            continue;
-                        }
-
-                        oneMainMatrix
-                                .translate(
-                                        chunk.getX() * Chunk.CHUNK_WIDTH + x,
-                                        chunk.getY() * Chunk.CHUNK_HEIGHT + y,
-                                        chunk.getZ() * Chunk.CHUNK_LENGTH + z,
-                                        modelMatrix
-                                ).get(modelBuffer);
-                        program.setUniformMatrix4fv("model", false, modelBuffer);
-
-                        Mesh mesh = blockModelManager.getMesh(blockId);
-                        mesh.bind();
-                        mesh.draw();
-                    }
-                }
-            }
+        Collection<Chunk> chunks = chunkGrid.loadedChunks();
+        for (Chunk chunk : chunks) {
+            chunkRenderer.render(program, chunk);
         }
-
-        glBindVertexArray(0);
 
         window.update();
     }

@@ -1,4 +1,4 @@
-package com.crown.model;
+package com.crown.mesh;
 
 public class CubeFactory {
     public static float[] vertices() {

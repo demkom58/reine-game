@@ -1,16 +1,68 @@
 package com.reine.world.chunk;
 
-public interface Chunk {
-    int CHUNK_WIDTH = 16;
-    int CHUNK_HEIGHT = 16;
-    int CHUNK_LENGTH = 16;
-    int CHUNK_SIZE = CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_LENGTH;
-    int CHUNK_COORDINATE_BITS = 4;
-    int CHUNK_COORDINATE_MASK = (1 << CHUNK_COORDINATE_BITS) - 1;
+import com.google.common.base.Preconditions;
 
-    boolean isEmpty();
+public class Chunk implements IChunk {
+    private final int x;
+    private final int y;
+    private final int z;
 
-    static int idx(int x, int y, int z) {
-        return x | (y << CHUNK_COORDINATE_BITS) | (z << CHUNK_COORDINATE_BITS * 2);
+    private final int[] blocks;
+
+    public Chunk(ChunkPosition position) {
+        this(position.x(), position.y(), position.z());
     }
+
+    public Chunk(int x, int y, int z) {
+        this(x, y, z, new int[CHUNK_SIZE]);
+    }
+
+    public Chunk(int x, int y, int z, int[] blocks) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        Preconditions.checkArgument(blocks.length == CHUNK_SIZE, "IChunk block array size is not " + CHUNK_SIZE);
+        this.blocks = blocks;
+    }
+
+    @Override
+    public int getX() {
+        return x;
+    }
+
+    @Override
+    public int getY() {
+        return y;
+    }
+
+    @Override
+    public int getZ() {
+        return z;
+    }
+
+    @Override
+    public int getBlockId(int x, int y, int z) {
+        return blocks[IChunk.idx(x, y, z)];
+    }
+
+    @Override
+    public int getBlockId(int idx) {
+        return blocks[idx];
+    }
+
+    @Override
+    public void setBlockId(int x, int y, int z, int blockId) {
+        blocks[IChunk.idx(x, y, z)] = blockId;
+    }
+
+    @Override
+    public void setBlockId(int idx, int blockId) {
+        blocks[idx] = blockId;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return false;
+    }
+
 }
