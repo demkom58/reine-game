@@ -90,11 +90,12 @@ public class ChunkRenderer {
         solid.bind();
         solid.draw();
 
-        glEnable(GL_ALPHA_TEST);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
         Mesh transparent = meshes.get(RenderPass.TRANSPARENT);
         transparent.bind();
         transparent.draw();
-        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_BLEND);
 
         glDisable(GL_DEPTH_TEST);
         glBindVertexArray(0);
