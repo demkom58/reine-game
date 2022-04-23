@@ -46,6 +46,9 @@ public class Client extends CrownGame {
 
         mouse.setPositionCallback(this::onCursorMove);
         window.setFocusCallback(this::onFocus);
+
+        camera.setZFar(1000);
+        camera.updateProjection(400, 300);
     }
 
     public void start() {
@@ -72,11 +75,12 @@ public class Client extends CrownGame {
             program = new ShaderProgram(vertex, fragment);
         }
 
-        for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < 16; y++) {
-                for (int z = 0; z < 16; z++) {
+        for (int x = 0; x < 10 * 16; x++) {
+            for (int y = 0; y < 10 * 16; y++) {
+                for (int z = 0; z < 10 * 16; z++) {
 //                    chunkGrid.setBlockId(x, y, z, Block.BOOKSHELF.getId());
-                    chunkGrid.setBlockId(x, y, z, (int) (Math.random() * Block.values().size()));
+                    chunkGrid.setBlockId(x, y, z, Block.GLASS.getId());
+//                    chunkGrid.setBlockId(x, y, z, (int) (Math.random() * Block.values().size()));
                 }
             }
         }
@@ -162,7 +166,7 @@ public class Client extends CrownGame {
         }
 
         camera.rotate(rotX, rotY, rotZ);
-        System.out.println("Cam pos: " + camera.getPosition() + ", Cam angle: " + camera.getRotation());
+//        System.out.println("Cam pos: " + camera.getPosition() + ", Cam angle: " + camera.getRotation());
     }
 
     public void onCursorMove(@NotNull Window window, double x, double y) {

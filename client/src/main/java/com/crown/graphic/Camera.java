@@ -21,16 +21,18 @@ public class Camera {
     protected final Quaternionf rotation;
 
     protected float fov = (float) toRadians(45);
-    protected float zNear = 0.1f;
-    protected float zFar = 100.0f;
+    protected float zNear;
+    protected float zFar;
 
     public Camera() {
-        this(new Vector3f(0, 0, -3), new Quaternionf());
+        this(new Vector3f(0, 0, -3), new Quaternionf(), 0.1f, 100.0f);
     }
 
-    public Camera(Vector3f position, Quaternionf rotation) {
+    public Camera(Vector3f position, Quaternionf rotation, float zNear, float zFar) {
         this.position = position;
         this.rotation = rotation;
+        this.zNear = zNear;
+        this.zFar = zFar;
     }
 
     public float[] toViewMatrix() {
@@ -46,9 +48,7 @@ public class Camera {
     }
 
     public void onResize(Window window, int width, int height) {
-        new Matrix4f()
-                .perspective(fov, (float) width / height, zNear, zFar)
-                .get(projectionBuffer);
+        updateProjection(width, height);
         glViewport(0, 0, width, height);
     }
 
@@ -98,5 +98,23 @@ public class Camera {
 
     public Quaternionf getRotation() {
         return rotation;
+    }
+
+    public void setZNear(float zNear) {
+        this.zNear = zNear;
+    }
+
+    public void setZFar(float zFar) {
+        this.zFar = zFar;
+    }
+
+    public void setFov(float fov) {
+        this.fov = fov;
+    }
+
+    public void updateProjection(int width, int height) {
+        new Matrix4f()
+                .perspective(fov, (float) width / height, zNear, zFar)
+                .get(projectionBuffer);
     }
 }

@@ -6,8 +6,6 @@ import com.crown.graphic.unit.Mesh;
 import com.crown.graphic.unit.Model;
 import com.reine.block.Block;
 import com.reine.client.render.Renderer;
-import com.reine.client.render.block.BlockModelManager;
-import com.reine.util.Axis;
 import com.reine.util.CrownMath;
 import com.reine.util.WorldSide;
 import com.reine.world.chunk.ChunkPosition;
@@ -19,8 +17,7 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.FloatBuffer;
 import java.util.*;
 
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class ChunkRenderer {
@@ -28,9 +25,9 @@ public class ChunkRenderer {
     private final TextureManager textureManager;
 
     private final Map<ChunkPosition, FaceChunk> facedChunks = new HashMap<>();
-    private final Map<ChunkPosition, EnumMap<RenderPass, Model>> renderChunks = new HashMap<>();
+    private final Map<ChunkPosition, EnumMap<RenderPass, Mesh>> renderChunks = new HashMap<>();
 
-    private final ChunkMesher mesher = new ChunkMesher(this::constructMesh);
+    private final ChunkMesher mesher = new ChunkMesher(this::compileMesh);
 
     public ChunkRenderer(Renderer renderer, TextureManager textureManager) {
         this.renderer = renderer;
@@ -46,25 +43,19 @@ public class ChunkRenderer {
                 ? FaceChunk.build(chunk)
                 : null;
 
-        EnumMap<RenderPass, Model> newModelsChunk = newFacedChunk != null
+        EnumMap<RenderPass, Mesh> newMeshChunk = newFacedChunk != null
                 ? this.mesher.mesh(chunk, newFacedChunk)
                 : null;
 
-        Collection<Model> models = newModelsChunk.values();
-        System.out.println(position + " built, models: " + models.size());
-        for (Model model : models) {
-            System.out.println("Model meshes: " + model.getMeshes().size());
-        }
-
         FaceChunk oldFacedChunk = this.facedChunks.put(position, newFacedChunk);
-        EnumMap<RenderPass, Model> oldModelsChunk = this.renderChunks.put(position, newModelsChunk);
+        EnumMap<RenderPass, Mesh> oldMeshChunk = this.renderChunks.put(position, newMeshChunk);
 
         if (oldFacedChunk != null) {
             oldFacedChunk.destroy();
         }
 
-        if (oldModelsChunk != null) {
-            oldModelsChunk.values().forEach(Model::destroy);
+        if (oldMeshChunk != null) {
+            oldMeshChunk.values().forEach(Mesh::destroy);
         }
     }
 
@@ -73,114 +64,90 @@ public class ChunkRenderer {
 
         faceChunk.update(chunk, x, y, z);
 
-        EnumMap<RenderPass, Model> newMesh = mesher.mesh(chunk, faceChunk);
-        EnumMap<RenderPass, Model> oldMesh = renderChunks.put(position, newMesh);
+        EnumMap<RenderPass, Mesh> newMesh = mesher.mesh(chunk, faceChunk);
+        EnumMap<RenderPass, Mesh> oldMesh = renderChunks.put(position, newMesh);
         if (oldMesh != null) {
-            oldMesh.values().forEach(Model::destroy);
+            oldMesh.values().forEach(Mesh::destroy);
         }
     }
 
     public void render(ShaderProgram program, IChunk chunk) {
-        EnumMap<RenderPass, Model> renderModel = renderChunks.get(ChunkPosition.fromChunk(chunk));
+        EnumMap<RenderPass, Mesh> meshes = renderChunks.get(ChunkPosition.fromChunk(chunk));
 
         renderer.oneMainMatrix
-                .translate(chunk.getX(), chunk.getY(), chunk.getZ(), renderer.modelMatrix)
+                .translate(chunk.getX() * 16, chunk.getY() * 16, chunk.getZ() * 16, renderer.modelMatrix)
                 .get(renderer.modelBuffer);
         program.setUniformMatrix4fv("model", false, renderer.modelBuffer);
+        textureManager.getAtlas().use(0);
 
         glEnable(GL_DEPTH_TEST);
-        textureManager.getAtlas().use(0);
-//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        for (Model model : renderModel.values()) {
-            final List<Mesh> meshes = model.getMeshes();
-            if (meshes.isEmpty()) {
-                continue;
-            }
+        Mesh solid = meshes.get(RenderPass.SOLID);
+        solid.bind();
+        solid.draw();
 
-            for (Mesh mesh : meshes) {
-                mesh.bind();
-                mesh.draw();
-            }
-        }
+        glEnable(GL_ALPHA_TEST);
+        Mesh transparent = meshes.get(RenderPass.TRANSPARENT);
+        transparent.bind();
+        transparent.draw();
+        glDisable(GL_ALPHA_TEST);
 
+        glDisable(GL_DEPTH_TEST);
         glBindVertexArray(0);
-//        for (int x = 0; x < IChunk.CHUNK_WIDTH; x++) {
-//            for (int y = 0; y < IChunk.CHUNK_HEIGHT; y++) {
-//                for (int z = 0; z < IChunk.CHUNK_LENGTH; z++) {
-//
-//                    int blockId = chunk.getBlockId(x, y, z);
-//                    if (blockId == 0) {
-//                        continue;
-//                    }
-//
-//                    renderer.oneMainMatrix
-//                            .translate(
-//                                    chunk.getX() * IChunk.CHUNK_WIDTH + x,
-//                                    chunk.getY() * IChunk.CHUNK_HEIGHT + y,
-//                                    chunk.getZ() * IChunk.CHUNK_LENGTH + z,
-//                                    renderer.modelMatrix
-//                            ).get(renderer.modelBuffer);
-//
-//                    program.setUniformMatrix4fv("mesh", false, renderer.modelBuffer);
-//
-//                    Mesh mesh = blockModelManager.getModel(blockId);
-//                    mesh.bind();
-//                    mesh.draw();
-//                }
-//            }
-//        }
     }
 
-    public Mesh constructMesh(Vector3f str, Vector3f end, WorldSide side, int blockId) {
-        CrownMath.minMaxSwap(str, end);
+    public Mesh compileMesh(List<ChunkQuad> quads) {
+        final int quadsCount = quads.size();
+        final FloatBuffer uvB = MemoryUtil.memAllocFloat(3 * 2 * 2 * quadsCount);
+        final FloatBuffer posB = MemoryUtil.memAllocFloat(3 * 3 * 2 * quadsCount);
 
-        System.out.println("Building mesh " + str + " - " + end + ": " + side);
+        for (ChunkQuad quad : quads) {
+            final Vector3f str = quad.start();
+            final Vector3f end = quad.end();
 
-        final FloatBuffer uvB = MemoryUtil.memAllocFloat(3 * 2 * 2);
-        final FloatBuffer posB = MemoryUtil.memAllocFloat(3 * 3 * 2);
+            switch (quad.side().axis()) {
+                case X -> posB.put(new float[]{
+                        str.x, str.y, str.z,
+                        str.x, str.y, end.z,
+                        str.x, end.y, str.z,
 
-        switch (side.axis()) {
-            case X -> posB.put(new float[]{
-                    str.x, str.y, str.z,
-                    str.x, str.y, end.z,
-                    str.x, end.y, str.z,
+                        str.x, str.y, end.z,
+                        str.x, end.y, str.z,
+                        str.x, end.y, end.z,
+                });
+                case Y -> posB.put(new float[]{
+                        str.x, str.y, str.z,
+                        end.x, str.y, str.z,
+                        str.x, str.y, end.z,
 
-                    str.x, str.y, end.z,
-                    str.x, end.y, str.z,
-                    str.x, end.y, end.z,
-            });
-            case Y -> posB.put(new float[]{
-                    str.x, str.y, str.z,
-                    end.x, str.y, str.z,
-                    str.x, str.y, end.z,
+                        end.x, str.y, str.z,
+                        str.x, str.y, end.z,
+                        end.x, str.y, end.z,
+                });
+                case Z -> posB.put(new float[]{
+                        str.x, str.y, str.z,
+                        end.x, str.y, str.z,
+                        str.x, end.y, str.z,
 
-                    end.x, str.y, str.z,
-                    str.x, str.y, end.z,
-                    end.x, str.y, end.z,
-            });
-            case Z -> posB.put(new float[]{
-                    str.x, str.y, str.z,
-                    end.x, str.y, str.z,
-                    str.x, end.y, str.z,
+                        end.x, str.y, str.z,
+                        str.x, end.y, str.z,
+                        end.x, end.y, str.z,
+                });
+            }
 
-                    end.x, str.y, str.z,
-                    str.x, end.y, str.z,
-                    end.x, end.y, str.z,
-            });
+            final float[] uv = new float[]{
+                    0.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 1.0f,
+            };
+
+            textureManager.atlasify(Block.byId(quad.blockId()).getTexture(), uv);
+            uvB.put(uv);
         }
-
-        final float[] uv = new float[]{
-                0.0f, 0.0f,
-                1.0f, 0.0f,
-                0.0f, 1.0f,
-
-                1.0f, 0.0f,
-                0.0f, 1.0f,
-                1.0f, 1.0f,
-        };
-        textureManager.atlasify(Block.byId(blockId).getTexture(), uv);
-        uvB.put(uv);
 
         return Mesh.triangles()
                 .positions(0, posB.flip(), 3, false)

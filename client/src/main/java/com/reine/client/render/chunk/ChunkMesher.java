@@ -1,7 +1,6 @@
 package com.reine.client.render.chunk;
 
 import com.crown.graphic.unit.Mesh;
-import com.crown.graphic.unit.Model;
 import com.reine.util.Direction;
 import com.reine.util.WorldSide;
 import com.reine.world.chunk.IChunk;
@@ -14,30 +13,32 @@ import java.util.EnumMap;
 import java.util.List;
 
 public class ChunkMesher {
-    private final ChunkMeshConstructor meshConstructor;
+    private final ChunkMeshCompiler meshCompiler;
 
-    public ChunkMesher(ChunkMeshConstructor meshConstructor) {
-        this.meshConstructor = meshConstructor;
+    public ChunkMesher(ChunkMeshCompiler meshCompiler) {
+        this.meshCompiler = meshCompiler;
     }
 
-    public EnumMap<RenderPass, Model> mesh(IChunk chunk, FaceChunk faceChunk) {
+    public EnumMap<RenderPass, Mesh> mesh(IChunk chunk, FaceChunk faceChunk) {
         if (chunk.isEmpty()) {
             return new EnumMap<>(RenderPass.class);
         }
 
-        final EnumMap<RenderPass, Model> meshes = new EnumMap<>(RenderPass.class);
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            for (RenderPass pass : RenderPass.values()) {
-                meshes.put(pass, new Model(greedyMesh(stack, chunk, faceChunk.getBuffer(pass))));
+        final EnumMap<RenderPass, Mesh> meshes = new EnumMap<>(RenderPass.class);
+        for (RenderPass pass : RenderPass.values()) {
+            try (MemoryStack stack = MemoryStack.stackPush()) {
+                List<ChunkQuad> quads = greedyQuads(stack, chunk, faceChunk.getBuffer(pass));
+                Mesh mesh = meshCompiler.compile(quads);
+                meshes.put(pass, mesh);
             }
         }
 
         return meshes;
     }
 
-    private List<Mesh> greedyMesh(MemoryStack stack, IChunk chunk, ByteBuffer culledFaces) {
+    private List<ChunkQuad> greedyQuads(MemoryStack stack, IChunk chunk, ByteBuffer culledFaces) {
         final ByteBuffer mask = stack.calloc(IChunk.CHUNK_SIZE);
-        final List<Mesh> meshes = new ArrayList<>();
+        final List<ChunkQuad> meshes = new ArrayList<>();
 
         for (WorldSide side : WorldSide.values()) {
             for (int x = 0; x < IChunk.CHUNK_WIDTH; x++) {
@@ -91,7 +92,7 @@ public class ChunkMesher {
                                 }
 
                                 int sideOffset = side.direction() == Direction.POSITIVE ? 1 : 0;
-                                meshes.add(meshConstructor.construct(
+                                meshes.add(new ChunkQuad(
                                         new Vector3f(x + sideOffset, y, z),
                                         new Vector3f(x + sideOffset, y + height, z + width),
                                         side,
@@ -134,7 +135,7 @@ public class ChunkMesher {
                                 }
 
                                 int sideOffset = side.direction() == Direction.POSITIVE ? 1 : 0;
-                                meshes.add(meshConstructor.construct(
+                                meshes.add(new ChunkQuad(
                                         new Vector3f(x, y + sideOffset, z),
                                         new Vector3f(x + width, y + sideOffset, z + height),
                                         side,
@@ -177,7 +178,7 @@ public class ChunkMesher {
                                 }
 
                                 int sideOffset = side.direction() == Direction.POSITIVE ? 1 : 0;
-                                meshes.add(meshConstructor.construct(
+                                meshes.add(new ChunkQuad(
                                         new Vector3f(x, y, z + sideOffset),
                                         new Vector3f(x + width, y + height, z + sideOffset),
                                         side,
