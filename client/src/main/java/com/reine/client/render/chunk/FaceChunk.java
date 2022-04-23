@@ -3,6 +3,8 @@ package com.reine.client.render.chunk;
 import com.crown.graphic.util.Destroyable;
 import com.reine.util.WorldSide;
 import com.reine.block.Block;
+import com.reine.world.chunk.Chunk;
+import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.IChunk;
 import org.joml.Vector3i;
 import org.lwjgl.system.MemoryUtil;
@@ -17,22 +19,22 @@ public class FaceChunk implements Destroyable {
             RenderPass.TRANSPARENT, MemoryUtil.memCalloc(IChunk.CHUNK_SIZE)
     ));
 
-    public void singleUpdate(IChunk chunk, int x, int y, int z) {
+    public void singleUpdate(ChunkGrid grid, IChunk chunk, int x, int y, int z) {
         for (RenderPass pass : RenderPass.values()) {
-            updateBlock(pass, chunk, x, y, z, passBuffers.get(pass));
+            updateBlock(pass, grid, chunk, x, y, z, passBuffers.get(pass));
         }
     }
 
-    public void update(IChunk chunk, int x, int y, int z) {
+    public void update(ChunkGrid grid, IChunk chunk, int x, int y, int z) {
         for (RenderPass pass : RenderPass.values()) {
             final ByteBuffer passBuffer = passBuffers.get(pass);
-            updateBlock(pass, chunk, x, y, z, passBuffer);
-            updateBlock(pass, chunk, x + 1, y, z, passBuffer);
-            updateBlock(pass, chunk, x - 1, y, z, passBuffer);
-            updateBlock(pass, chunk, x, y + 1, z, passBuffer);
-            updateBlock(pass, chunk, x, y - 1, z, passBuffer);
-            updateBlock(pass, chunk, x, y, z + 1, passBuffer);
-            updateBlock(pass, chunk, x, y, z - 1, passBuffer);
+            updateBlock(pass, grid, chunk, x, y, z, passBuffer);
+            updateBlock(pass, grid, chunk, x + 1, y, z, passBuffer);
+            updateBlock(pass, grid, chunk, x - 1, y, z, passBuffer);
+            updateBlock(pass, grid, chunk, x, y + 1, z, passBuffer);
+            updateBlock(pass, grid, chunk, x, y - 1, z, passBuffer);
+            updateBlock(pass, grid, chunk, x, y, z + 1, passBuffer);
+            updateBlock(pass, grid, chunk, x, y, z - 1, passBuffer);
         }
     }
 
@@ -45,7 +47,7 @@ public class FaceChunk implements Destroyable {
         passBuffers.values().forEach(MemoryUtil::memFree);
     }
 
-    public static FaceChunk build(IChunk chunk) {
+    public static FaceChunk build(ChunkGrid grid, IChunk chunk) {
         final FaceChunk faceChunk = new FaceChunk();
 
         for (RenderPass pass : RenderPass.values()) {
@@ -54,7 +56,7 @@ public class FaceChunk implements Destroyable {
             for (int x = 0; x < IChunk.CHUNK_WIDTH; x++) {
                 for (int y = 0; y < IChunk.CHUNK_HEIGHT; y++) {
                     for (int z = 0; z < IChunk.CHUNK_LENGTH; z++) {
-                        updateBlock(pass, chunk, x, y, z, buffer);
+                        updateBlock(pass, grid, chunk, x, y, z, buffer);
                     }
                 }
             }
@@ -63,7 +65,7 @@ public class FaceChunk implements Destroyable {
         return faceChunk;
     }
 
-    private static void updateBlock(RenderPass pass, IChunk chunk, int x, int y, int z, ByteBuffer buffer) {
+    private static void updateBlock(RenderPass pass, ChunkGrid grid, IChunk chunk, int x, int y, int z, ByteBuffer buffer) {
         int index = IChunk.idx(x, y, z);
         int blockId = chunk.getBlockId(index);
         if (blockId == 0) {
@@ -78,7 +80,7 @@ public class FaceChunk implements Destroyable {
 
             // fill visibility of all sides for current block
             for (WorldSide side : WorldSide.values()) {
-                final Block neighbor = getNeighborBlock(chunk, x, y, z, side);
+                final Block neighbor = getNeighborBlock(grid, chunk, x, y, z, side);
                 if (block != neighbor && neighbor.isTransparent()) {
                     sidesMask |= side.mask();
                 }
@@ -89,14 +91,33 @@ public class FaceChunk implements Destroyable {
         }
     }
 
-    private static Block getNeighborBlock(IChunk chunk, int x, int y, int z, WorldSide side) {
+    private static Block getNeighborBlock(ChunkGrid grid, IChunk chunk, int x, int y, int z, WorldSide side) {
         Vector3i offset = side.facingVector();
         x += offset.x;
         y += offset.y;
         z += offset.z;
 
-        if (x < 0 || y < 0 || z < 0 || x >= IChunk.CHUNK_WIDTH || y >= IChunk.CHUNK_HEIGHT || z >= IChunk.CHUNK_LENGTH) {
-            return Block.AIR;
+        if (x < 0 || x >= IChunk.CHUNK_WIDTH) {
+            Chunk neighbor = grid.getChunk(chunk.getX() + x % IChunk.CHUNK_WIDTH, chunk.getY(), chunk.getZ());
+            if (neighbor == null) {
+                return Block.AIR;
+            }
+
+            return Block.byId(neighbor.getBlockId(x & IChunk.CHUNK_COORDINATE_MASK, y, z));
+        } else if (y < 0 || y >= IChunk.CHUNK_HEIGHT) {
+            Chunk neighbor = grid.getChunk(chunk.getX(), chunk.getY() + y % IChunk.CHUNK_HEIGHT, chunk.getZ());
+            if (neighbor == null) {
+                return Block.AIR;
+            }
+
+            return Block.byId(neighbor.getBlockId(x, y & IChunk.CHUNK_COORDINATE_MASK, z));
+        } else if (z < 0 || z >= IChunk.CHUNK_LENGTH) {
+            Chunk neighbor = grid.getChunk(chunk.getX(), chunk.getY(), chunk.getZ() + z % IChunk.CHUNK_LENGTH);
+            if (neighbor == null) {
+                return Block.AIR;
+            }
+
+            return Block.byId(neighbor.getBlockId(x, y, z & IChunk.CHUNK_COORDINATE_MASK));
         }
 
         return Block.byId(chunk.getBlockId(x, y, z));

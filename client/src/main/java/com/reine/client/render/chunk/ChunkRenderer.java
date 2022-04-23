@@ -8,6 +8,7 @@ import com.reine.block.Block;
 import com.reine.client.render.Renderer;
 import com.reine.util.CrownMath;
 import com.reine.util.WorldSide;
+import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.ChunkPosition;
 import com.reine.world.chunk.IChunk;
 import org.jetbrains.annotations.NotNull;
@@ -34,13 +35,13 @@ public class ChunkRenderer {
         this.textureManager = textureManager;
     }
 
-    public void setChunk(@NotNull IChunk chunk) {
-        setChunk(ChunkPosition.fromChunk(chunk), chunk);
+    public void setChunk(ChunkGrid grid, @NotNull IChunk chunk) {
+        setChunk(grid, ChunkPosition.fromChunk(chunk), chunk);
     }
 
-    public void setChunk(ChunkPosition position, IChunk chunk) {
+    public void setChunk(ChunkGrid grid, ChunkPosition position, IChunk chunk) {
         FaceChunk newFacedChunk = chunk != null
-                ? FaceChunk.build(chunk)
+                ? FaceChunk.build(grid, chunk)
                 : null;
 
         EnumMap<RenderPass, Mesh> newMeshChunk = newFacedChunk != null
@@ -59,10 +60,10 @@ public class ChunkRenderer {
         }
     }
 
-    public void updateBlock(ChunkPosition position, IChunk chunk, int x, int y, int z) {
+    public void updateBlock(ChunkGrid grid, ChunkPosition position, IChunk chunk, int x, int y, int z) {
         FaceChunk faceChunk = facedChunks.get(position);
 
-        faceChunk.update(chunk, x, y, z);
+        faceChunk.update(grid, chunk, x, y, z);
 
         EnumMap<RenderPass, Mesh> newMesh = mesher.mesh(chunk, faceChunk);
         EnumMap<RenderPass, Mesh> oldMesh = renderChunks.put(position, newMesh);

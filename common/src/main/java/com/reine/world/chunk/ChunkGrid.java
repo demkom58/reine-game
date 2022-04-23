@@ -1,5 +1,7 @@
 package com.reine.world.chunk;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,6 +10,7 @@ import java.util.Map;
 public class ChunkGrid {
     private final Map<ChunkPosition, Chunk> chunkMap = new HashMap<>();
 
+    @Nullable
     public Chunk getChunk(int x, int y, int z) {
         return chunkMap.get(ChunkPosition.fromGlobal(x, y, z));
     }
