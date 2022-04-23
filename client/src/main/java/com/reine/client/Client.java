@@ -14,6 +14,7 @@ import com.reine.client.render.block.BlockModelManager;
 import com.reine.client.render.chunk.ChunkRenderer;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.Chunk;
+import com.reine.world.chunk.IChunk;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -75,9 +76,9 @@ public class Client extends CrownGame {
             program = new ShaderProgram(vertex, fragment);
         }
 
-        for (int x = 0; x < 10 * 16; x++) {
-            for (int y = 0; y < 10 * 16; y++) {
-                for (int z = 0; z < 10 * 16; z++) {
+        for (int x = 0; x < 10 * IChunk.CHUNK_WIDTH; x++) {
+            for (int y = 0; y < 10 * IChunk.CHUNK_HEIGHT; y++) {
+                for (int z = 0; z < 10 * IChunk.CHUNK_LENGTH; z++) {
 //                    chunkGrid.setBlockId(x, y, z, Block.BOOKSHELF.getId());
                     chunkGrid.setBlockId(x, y, z, Block.GLASS.getId());
 //                    chunkGrid.setBlockId(x, y, z, (int) (Math.random() * Block.values().size()));

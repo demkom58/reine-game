@@ -75,8 +75,12 @@ public class ChunkRenderer {
         EnumMap<RenderPass, Mesh> meshes = renderChunks.get(ChunkPosition.fromChunk(chunk));
 
         renderer.oneMainMatrix
-                .translate(chunk.getX() * 16, chunk.getY() * 16, chunk.getZ() * 16, renderer.modelMatrix)
-                .get(renderer.modelBuffer);
+                .translate(
+                        chunk.getX() * IChunk.CHUNK_WIDTH,
+                        chunk.getY() * IChunk.CHUNK_HEIGHT,
+                        chunk.getZ() * IChunk.CHUNK_LENGTH,
+                        renderer.modelMatrix
+                ).get(renderer.modelBuffer);
         program.setUniformMatrix4fv("model", false, renderer.modelBuffer);
         textureManager.getAtlas().use(0);
 
