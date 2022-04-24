@@ -123,6 +123,7 @@ public class ChunkRenderer {
             final Vector3f str = quad.start();
             final Vector3f end = quad.end();
 
+            final Block block = Block.byId(quad.blockId());
             final WorldSide side = quad.side();
             final Axis axis = side.axis();
 
@@ -135,13 +136,6 @@ public class ChunkRenderer {
                         str.x, end.y, str.z,
                         str.x, str.y, end.z,
                         str.x, end.y, end.z,
-//                        0,0,0,
-//                        0,0,0,
-//                        0,0,0,
-//
-//                        0,0,0,
-//                        0,0,0,
-//                        0,0,0,
                 });
                 case Y -> posB.put(new float[]{
                         str.x, str.y, str.z,
@@ -151,13 +145,6 @@ public class ChunkRenderer {
                         end.x, str.y, str.z,
                         str.x, str.y, end.z,
                         end.x, str.y, end.z,
-//                        0,0,0,
-//                        0,0,0,
-//                        0,0,0,
-//
-//                        0,0,0,
-//                        0,0,0,
-//                        0,0,0,
                 });
                 case Z -> posB.put(new float[]{
                         str.x, str.y, str.z,
@@ -167,13 +154,6 @@ public class ChunkRenderer {
                         end.x, str.y, str.z,
                         str.x, end.y, str.z,
                         end.x, end.y, str.z,
-//                        0,0,0,
-//                        0,0,0,
-//                        0,0,0,
-//
-//                        0,0,0,
-//                        0,0,0,
-//                        0,0,0,
                 });
             }
 
@@ -188,7 +168,7 @@ public class ChunkRenderer {
             });
             System.out.println(normal);
 
-            texB.put(textureManager.normalizedDimension(Block.byId(quad.blockId()).getTexture(side)));
+            texB.put(textureManager.normalizedDimension(block.getTexture(side)));
         }
 
         return Mesh.triangles()
