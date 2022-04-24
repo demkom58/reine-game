@@ -1,5 +1,6 @@
 package com.reine.block;
 
+import com.reine.util.WorldSide;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
@@ -38,7 +39,7 @@ public class Block {
         return transparent;
     }
 
-    public String getTexture() {
+    public String getTexture(WorldSide side) {
         return texture;
     }
 

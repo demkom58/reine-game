@@ -3,10 +3,9 @@ package com.reine.client.render.chunk;
 import com.crown.graphic.shader.ShaderProgram;
 import com.crown.graphic.texture.TextureManager;
 import com.crown.graphic.unit.Mesh;
-import com.crown.graphic.unit.Model;
 import com.reine.block.Block;
 import com.reine.client.render.Renderer;
-import com.reine.util.CrownMath;
+import com.reine.util.Axis;
 import com.reine.util.WorldSide;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.ChunkPosition;
@@ -16,12 +15,19 @@ import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class ChunkRenderer {
+    private static final int TRIANGLE_VERTICES = 3;
+    private static final int QUAD_TRIANGLES = 2;
+
+
     private final Renderer renderer;
     private final TextureManager textureManager;
 
@@ -93,33 +99,49 @@ public class ChunkRenderer {
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
+
+//        glEnable(GL_CULL_FACE);
+//        glCullFace(GL_BACK);
         Mesh transparent = meshes.get(RenderPass.TRANSPARENT);
         transparent.bind();
         transparent.draw();
-        glDisable(GL_BLEND);
+//        glDisable(GL_BLEND);
+//        glDisable(GL_CULL_FACE);
 
         glDisable(GL_DEPTH_TEST);
         glBindVertexArray(0);
     }
 
+
     public Mesh compileMesh(List<ChunkQuad> quads) {
         final int quadsCount = quads.size();
-        final FloatBuffer uvB = MemoryUtil.memAllocFloat(3 * 2 * 2 * quadsCount);
-        final FloatBuffer posB = MemoryUtil.memAllocFloat(3 * 3 * 2 * quadsCount);
+        final FloatBuffer texB = MemoryUtil.memAllocFloat(quadsCount * 4); // vec4(atlas x, atlas y, tile width, tile height)
+        final FloatBuffer faceB = MemoryUtil.memAllocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
+        final FloatBuffer posB = MemoryUtil.memAllocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
 
         for (ChunkQuad quad : quads) {
             final Vector3f str = quad.start();
             final Vector3f end = quad.end();
 
-            switch (quad.side().axis()) {
+            final WorldSide side = quad.side();
+            final Axis axis = side.axis();
+
+            switch (axis) {
                 case X -> posB.put(new float[]{
                         str.x, str.y, str.z,
                         str.x, str.y, end.z,
                         str.x, end.y, str.z,
 
-                        str.x, str.y, end.z,
                         str.x, end.y, str.z,
+                        str.x, str.y, end.z,
                         str.x, end.y, end.z,
+//                        0,0,0,
+//                        0,0,0,
+//                        0,0,0,
+//
+//                        0,0,0,
+//                        0,0,0,
+//                        0,0,0,
                 });
                 case Y -> posB.put(new float[]{
                         str.x, str.y, str.z,
@@ -129,6 +151,13 @@ public class ChunkRenderer {
                         end.x, str.y, str.z,
                         str.x, str.y, end.z,
                         end.x, str.y, end.z,
+//                        0,0,0,
+//                        0,0,0,
+//                        0,0,0,
+//
+//                        0,0,0,
+//                        0,0,0,
+//                        0,0,0,
                 });
                 case Z -> posB.put(new float[]{
                         str.x, str.y, str.z,
@@ -138,26 +167,35 @@ public class ChunkRenderer {
                         end.x, str.y, str.z,
                         str.x, end.y, str.z,
                         end.x, end.y, str.z,
+//                        0,0,0,
+//                        0,0,0,
+//                        0,0,0,
+//
+//                        0,0,0,
+//                        0,0,0,
+//                        0,0,0,
                 });
             }
 
-            final float[] uv = new float[]{
-                    0.0f, 0.0f,
-                    1.0f, 0.0f,
-                    0.0f, 1.0f,
+            Vector3f normal = axis.getVector();
+            faceB.put(new float[] {
+                    normal.x, normal.y, normal.z,
+                    normal.x, normal.y, normal.z,
+                    normal.x, normal.y, normal.z,
+                    normal.x, normal.y, normal.z,
+                    normal.x, normal.y, normal.z,
+                    normal.x, normal.y, normal.z,
+            });
+            System.out.println(normal);
 
-                    1.0f, 0.0f,
-                    0.0f, 1.0f,
-                    1.0f, 1.0f,
-            };
-
-            textureManager.atlasify(Block.byId(quad.blockId()).getTexture(), uv);
-            uvB.put(uv);
+            texB.put(textureManager.normalizedDimension(Block.byId(quad.blockId()).getTexture(side)));
         }
 
         return Mesh.triangles()
                 .positions(0, posB.flip(), 3, false)
-                .attribute(1, uvB.flip(), 2, false)
+                .attribute(1, faceB.flip(), 3, false)
+                .attribute(2, texB.flip(), 4, false)
+                .attributeDivisor(2, 6)
                 .build();
     }
 

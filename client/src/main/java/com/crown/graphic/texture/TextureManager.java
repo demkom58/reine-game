@@ -28,6 +28,8 @@ public class TextureManager {
     private final File texturesRoot = new File("assets/textures/");
     private final Set<ImageResource> textureResources = new HashSet<>();
     private final Map<String, AtlasDimension> nameDim = new HashMap<>();
+    private final Map<String, float[]> nameNormDim = new HashMap<>();
+
     private TextureAtlas2D atlas;
     private boolean atlasChanged = true;
 
@@ -77,6 +79,7 @@ public class TextureManager {
 
                 nameDim.clear();
                 nameDim.putAll(atlasImage.getPositions());
+
                 // todo: add caching
                 if (!textureResources.isEmpty()) {
                     try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("atlas.png"))) {
@@ -89,6 +92,23 @@ public class TextureManager {
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
             }
+
+            nameNormDim.clear();
+            nameDim.forEach((k, v) -> {
+                float atlasWidth = atlas.getWidth();
+                float atlasHeight = atlas.getHeight();
+
+                int tileX = v.x();
+                int tileY = v.y();
+
+                float x = tileX / atlasWidth;
+                float y = tileY / atlasHeight;
+                float w = (tileX + v.width()) / atlasWidth - x;
+                float h = (tileY + v.height()) / atlasHeight - y;
+
+
+                nameNormDim.put(k, new float[]{x, y, w, h});
+            });
         }
 
         atlasChanged = false;
@@ -98,18 +118,8 @@ public class TextureManager {
         return atlasChanged;
     }
 
-    public void atlasify(String name, float[] texcoords) {
-        AtlasDimension dimension = nameDim.get(name);
-
-        for (int i = 0; i < texcoords.length / 2; i++) {
-            int uIdx = i * 2;
-            int vIdx = uIdx + 1;
-
-            int u = (int) (texcoords[uIdx] * dimension.width());
-            int v = (int) (texcoords[vIdx] * dimension.height());
-            texcoords[uIdx] = atlas.u(name, u);
-            texcoords[vIdx] = atlas.v(name, v);
-        }
+    public float[] normalizedDimension(String name) {
+        return nameNormDim.get(name);
     }
 
     public TextureAtlas2D getAtlas() {

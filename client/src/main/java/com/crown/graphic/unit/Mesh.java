@@ -13,6 +13,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.glDisableVertexAttribArray;
 import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL33.glVertexAttribDivisor;
 
 public record Mesh(int mode, int vertexCount, int vaoId, int eboId, int[] usedVbo) implements Destroyable {
     public static final Mesh EMPTY = Mesh.triangles().build();
@@ -84,7 +85,7 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, int[] usedVb
 
         public Builder positions(int index, FloatBuffer positions, int count, boolean normalized) {
             if (this.vertices == -1) {
-                vertices = positions.remaining() / 3;
+                vertices = positions.remaining() / count;
             }
 
             int posVboId = glGenBuffers();
@@ -159,6 +160,11 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, int[] usedVb
             glVertexAttribPointer(index, count, GL_FLOAT, normalized, 0, 0);
             glEnableVertexAttribArray(index);
 
+            return this;
+        }
+
+        public Builder attributeDivisor(int index, int divisor) {
+            glVertexAttribDivisor(index, divisor);
             return this;
         }
 

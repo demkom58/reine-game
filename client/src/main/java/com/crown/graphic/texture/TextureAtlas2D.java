@@ -70,4 +70,17 @@ public class TextureAtlas2D extends Texture2D {
         glGenerateMipmap(GL_TEXTURE_2D);
         return new TextureAtlas2D(handle, width, height, atlas.getPositions());
     }
+
+    @Override
+    public int getHandle() {
+        return super.getHandle();
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
+    }
 }

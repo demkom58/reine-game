@@ -4,13 +4,11 @@ import com.crown.graphic.CrownGame;
 import com.crown.graphic.shader.Shader;
 import com.crown.graphic.shader.ShaderProgram;
 import com.crown.graphic.texture.TextureManager;
-import com.crown.graphic.unit.Mesh;
 import com.crown.input.keyboard.Keyboard;
 import com.crown.input.mouse.Mouse;
 import com.crown.output.window.Window;
 import com.reine.block.Block;
 import com.reine.client.render.Renderer;
-import com.reine.client.render.block.BlockModelManager;
 import com.reine.client.render.chunk.ChunkRenderer;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.Chunk;
@@ -34,7 +32,6 @@ public class Client extends CrownGame {
 
     Renderer renderer = new Renderer();
     TextureManager textureManager = new TextureManager();
-    BlockModelManager blockModelManager = new BlockModelManager();
     ChunkRenderer chunkRenderer;
 
     ChunkGrid chunkGrid = new ChunkGrid();
@@ -68,7 +65,6 @@ public class Client extends CrownGame {
         }
 
         textureManager.buildAtlas();
-        blockModelManager.reload(textureManager);
         chunkRenderer = new ChunkRenderer(renderer, textureManager);
 
         try (Shader vertex = new Shader(getClass().getResource("/shader/vertex.vsh"), true);
@@ -76,11 +72,14 @@ public class Client extends CrownGame {
             program = new ShaderProgram(vertex, fragment);
         }
 
-        for (int x = 0; x < 30 * IChunk.CHUNK_WIDTH; x++) {
-            for (int y = 0; y < 30 * IChunk.CHUNK_HEIGHT; y++) {
-                for (int z = 0; z < 30 * IChunk.CHUNK_LENGTH; z++) {
-//                    chunkGrid.setBlockId(x, y, z, Block.BOOKSHELF.getId());
-                    chunkGrid.setBlockId(x, y, z, Block.GLASS.getId());
+        for (int x = 0; x < 0.5f * IChunk.CHUNK_WIDTH; x++) {
+            for (int y = 0; y < 0.5f * IChunk.CHUNK_HEIGHT; y++) {
+                for (int z = 0; z < 0.5f * IChunk.CHUNK_LENGTH; z++) {
+                    chunkGrid.setBlockId(x, y, z, Math.random() < 0.9f
+                            ? Block.BOOKSHELF.getId()
+                            : (int) (Math.random() * Block.values().size())
+                    );
+//                    chunkGrid.setBlockId(x, y, z, Block.GLASS.getId());
 //                    chunkGrid.setBlockId(x, y, z, (int) (Math.random() * Block.values().size()));
                 }
             }
