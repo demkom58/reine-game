@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL11;
 import java.nio.ByteBuffer;
 
 public enum PixelFormat {
-    RGB(3, GL11.GL_RGB) {
+    RGB(3, 8, 255, GL11.GL_RGB) {
         @Override
         public void putRGBA(int rgba, ByteBuffer buffer) {
             buffer.put((byte) (rgba & 0xFF));
@@ -39,7 +39,7 @@ public enum PixelFormat {
             return result;
         }
     },
-    RGBA(4, GL11.GL_RGBA) {
+    RGBA(4, 8,255, GL11.GL_RGBA) {
         @Override
         public void putRGBA(int rgba, ByteBuffer buffer) {
             buffer.put((byte) (rgba & 0xFF));
@@ -78,10 +78,14 @@ public enum PixelFormat {
     };
 
     public final int channels;
+    public final int channelBits;
+    public final int channelMax;
     public final int glType;
 
-    PixelFormat(int channels, int glType) {
+    PixelFormat(int channels, int channelBits, int channelMax, int glType) {
         this.channels = channels;
+        this.channelBits = channelBits;
+        this.channelMax = channelMax;
         this.glType = glType;
     }
 
