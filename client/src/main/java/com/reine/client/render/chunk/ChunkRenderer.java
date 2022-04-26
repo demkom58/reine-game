@@ -166,8 +166,6 @@ public class ChunkRenderer {
                     normal.x, normal.y, normal.z,
                     normal.x, normal.y, normal.z,
             });
-            System.out.println(normal);
-
             texB.put(textureManager.normalizedDimension(block.getTexture(side)));
         }
 
