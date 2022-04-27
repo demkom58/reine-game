@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 public class GenericImageData implements ImageData {
-    private static final ColorSpace LINEAR_RGB = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+    public static final ColorSpace LINEAR_RGB = ColorSpace.getInstance(ColorSpace.CS_sRGB);
     private final int width;
     private final int height;
     private final ByteBuffer bytes;
@@ -113,7 +113,7 @@ public class GenericImageData implements ImageData {
     }
 
     public static GenericImageData wrap(int width, int height, ByteBuffer data, PixelFormat format) {
-        ByteBuffer buffer = MemoryUtil.memAlloc(data.remaining())
+        ByteBuffer buffer = MemoryUtil.memCalloc(data.remaining())
                 .put(data)
                 .flip();
 
@@ -121,7 +121,7 @@ public class GenericImageData implements ImageData {
     }
 
     public static GenericImageData alloc(int width, int height, PixelFormat format) {
-        ByteBuffer buffer = MemoryUtil.memAlloc(width * height * format.channels);
+        ByteBuffer buffer = MemoryUtil.memCalloc(width * height * format.channels);
         return new GenericImageData(width, height, buffer, format);
     }
 

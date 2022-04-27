@@ -115,9 +115,9 @@ public class ChunkRenderer {
 
     public Mesh compileMesh(List<ChunkQuad> quads) {
         final int quadsCount = quads.size();
-        final FloatBuffer texB = MemoryUtil.memAllocFloat(quadsCount * 4); // vec4(atlas x, atlas y, tile width, tile height)
-        final FloatBuffer faceB = MemoryUtil.memAllocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
-        final FloatBuffer posB = MemoryUtil.memAllocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
+        final FloatBuffer texB = MemoryUtil.memCallocFloat(quadsCount * 4); // vec4(atlas x, atlas y, tile width, tile height)
+        final FloatBuffer faceB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
+        final FloatBuffer posB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
 
         for (ChunkQuad quad : quads) {
             final Vector3f str = quad.start();
