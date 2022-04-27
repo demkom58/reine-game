@@ -1,9 +1,7 @@
 package com.crown.graphic.texture;
 
-import com.crown.resource.image.AtlasDimension;
-import com.crown.resource.image.AtlasImage;
-import com.crown.resource.image.ImageInfo;
-import com.crown.resource.image.ImageResource;
+import com.crown.resource.image.*;
+import com.crown.resource.image.filter.DownscaleKernel;
 import org.joml.Vector2f;
 import org.lwjgl.system.MemoryStack;
 
@@ -13,10 +11,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.IntBuffer;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -27,7 +22,7 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 public class TextureManager {
     private final File texturesRoot = new File("assets/textures/");
     private final Set<ImageResource> textureResources = new HashSet<>();
-    private final Map<String, AtlasDimension> nameDim = new HashMap<>();
+    private final Map<String, ImageDimension> nameDim = new HashMap<>();
     private final Map<String, float[]> nameNormDim = new HashMap<>();
 
     private TextureAtlas2D atlas;
@@ -72,25 +67,41 @@ public class TextureManager {
             }
 
             long genStart = System.currentTimeMillis();
-            CompletableFuture<AtlasImage> futureAtlas = AtlasImage.createParallel(maxTextureSize, maxTextureSize, textures);
-            try (AtlasImage atlasImage = futureAtlas.get()) {
+
+            List<AtlasImage> atlases = new ArrayList<>();
+            try  {
+                final AtlasImage image = AtlasImage.createParallel(maxTextureSize, maxTextureSize, textures).get();
+                atlases.add(image);
+
+                for (int mipmapLevel = 1; mipmapLevel < 5; mipmapLevel++) {
+                    atlases.add(AtlasImage.mipmap(DownscaleKernel.BLACKMAN_SINC, image, mipmapLevel));
+                }
+
                 long generatedFor = System.currentTimeMillis() - genStart;
                 System.out.println("Atlas generation done for " + (generatedFor / 1000f) + "sec");
 
                 nameDim.clear();
-                nameDim.putAll(atlasImage.getPositions());
+                nameDim.putAll(image.getPositions());
 
                 // todo: add caching
                 if (!textureResources.isEmpty()) {
-                    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("atlas.png"))) {
-                        ImageIO.write(atlasImage.getData().toBufferedImage(), "png", out);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    for (int i = 0; i < atlases.size(); i++) {
+                        AtlasImage img = atlases.get(i);
+                        GenericImageData data = img.getData();
+                        try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("atlas-" + i + ".png"))) {
+                            ImageIO.write(data.toBufferedImage(), "png", out);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-                atlas = TextureAtlas2D.from(atlasImage);
+                atlas = TextureAtlas2D.from(atlases);
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
+            } finally {
+                for (AtlasImage atlasImage : atlases) {
+                    atlasImage.destroy();
+                }
             }
 
             nameNormDim.clear();

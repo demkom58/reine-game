@@ -1,6 +1,7 @@
 package com.crown.resource.image.filter;
 
 import com.crown.resource.image.GenericImageData;
+import com.crown.resource.image.ImageData;
 import com.crown.util.PixelFormat;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public final class ImageSampler {
         return output;
     }
 
-    public static void sample(Kernel kernel, GenericImageData input, GenericImageData output) {
+    public static void sample(Kernel kernel, ImageData input, ImageData output) {
         try (GenericImageData work = GenericImageData.alloc(1, input.height(), input.format())) {
             final PixelFormat format = input.format();
 
@@ -282,12 +283,12 @@ public final class ImageSampler {
         return contribX;
     }
 
-    static int getChannel(GenericImageData in, int x, int y, int channel) {
+    static int getChannel(ImageData in, int x, int y, int channel) {
         PixelFormat format = in.format();
         return (in.getRGBA(x, y) >> (format.channelBits * channel)) & format.channelMax;
     }
 
-    static void setChannel(GenericImageData in, int x, int y, int channel, int value) {
+    static void setChannel(ImageData in, int x, int y, int channel, int value) {
         PixelFormat format = in.format();
         int offset = format.channelBits * channel;
 

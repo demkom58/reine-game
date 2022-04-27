@@ -72,12 +72,11 @@ public class Client extends CrownGame {
             program = new ShaderProgram(vertex, fragment);
         }
 
-        for (int x = 0; x < 0.5f * IChunk.CHUNK_WIDTH; x++) {
-            for (int y = 0; y < 0.5f * IChunk.CHUNK_HEIGHT; y++) {
-                for (int z = 0; z < 0.5f * IChunk.CHUNK_LENGTH; z++) {
-                    chunkGrid.setBlockId(x, y, z, Math.random() < 0.9f
-                            ? Block.BOOKSHELF.getId()
-                            : (int) (Math.random() * Block.values().size())
+        for (int x = 0; x < 32f * IChunk.CHUNK_WIDTH; x++) {
+            for (int y = 0; y < 10f * IChunk.CHUNK_HEIGHT; y++) {
+                for (int z = 0; z < 32f * IChunk.CHUNK_LENGTH; z++) {
+                    chunkGrid.setBlockId(x, y, z,
+                            Block.BOOKSHELF.getId()
                     );
 //                    chunkGrid.setBlockId(x, y, z, Block.GLASS.getId());
 //                    chunkGrid.setBlockId(x, y, z, (int) (Math.random() * Block.values().size()));
