@@ -13,5 +13,5 @@ vec4 atlasTexture(vec2 tileOffset, vec2 tileSize, vec2 tileUV, sampler2D atlas) 
 
 void main()
 {
-    FragColor = atlasTexture(TexCoords.xy, TexCoords.zw, fract(TileUV), tex);
+    FragColor = atlasTexture(TexCoords.xy, TexCoords.zw, TileUV, tex);
 }

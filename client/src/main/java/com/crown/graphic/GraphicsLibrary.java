@@ -3,10 +3,11 @@ package com.crown.graphic;
 import com.crown.graphic.util.GraphicsError;
 import com.reine.util.OperatingSystem;
 import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryUtil;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL13.GL_MULTISAMPLE;
 
 public final class GraphicsLibrary {
     private static final GLFWErrorCallback ERROR_CALLBACK = GLFWErrorCallback.create(GraphicsLibrary::printError);
@@ -35,6 +36,10 @@ public final class GraphicsLibrary {
         if (glfwErrorCallback != null) {
             glfwErrorCallback.free();
         }
+    }
+
+    public static void enableMultiSampling() {
+        glEnable(GL_MULTISAMPLE);
     }
 
     public static void setThrowOnError() {

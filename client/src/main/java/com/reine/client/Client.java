@@ -1,6 +1,7 @@
 package com.reine.client;
 
 import com.crown.graphic.CrownGame;
+import com.crown.graphic.GraphicsLibrary;
 import com.crown.graphic.shader.Shader;
 import com.crown.graphic.shader.ShaderProgram;
 import com.crown.graphic.texture.TextureManager;
@@ -47,6 +48,9 @@ public class Client extends CrownGame {
 
         camera.setZFar(1000);
         camera.updateProjection(400, 300);
+
+        GraphicsLibrary.enableMultiSampling();
+        window.setSampling(GLFW_SAMPLES, 4);
     }
 
     public void start() {
@@ -72,9 +76,9 @@ public class Client extends CrownGame {
             program = new ShaderProgram(vertex, fragment);
         }
 
-        for (int x = 0; x < 32f * IChunk.CHUNK_WIDTH; x++) {
+        for (int x = 0; x < 10f * IChunk.CHUNK_WIDTH; x++) {
             for (int y = 0; y < 10f * IChunk.CHUNK_HEIGHT; y++) {
-                for (int z = 0; z < 32f * IChunk.CHUNK_LENGTH; z++) {
+                for (int z = 0; z < 10f * IChunk.CHUNK_LENGTH; z++) {
                     chunkGrid.setBlockId(x, y, z,
                             Block.BOOKSHELF.getId()
                     );

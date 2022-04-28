@@ -66,6 +66,10 @@ public class Window implements Destroyable {
         glfwSwapInterval(vsync ? 1 : 0);
     }
 
+    public void setSampling(int sampling, int level) {
+        glfwWindowHint(sampling, level);
+    }
+
     public boolean isFocused() {
         return glfwGetWindowAttrib(handle, GLFW_FOCUSED) == GLFW_TRUE;
     }
