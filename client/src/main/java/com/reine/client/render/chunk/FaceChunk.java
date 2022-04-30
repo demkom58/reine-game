@@ -100,25 +100,10 @@ public class FaceChunk implements Destroyable {
             return Block.byId(chunk.getBlockId(x, y, z));
         }
 
-        final int globalX = chunk.getX() * IChunk.CHUNK_WIDTH + x;
-        final int globalY = chunk.getY() * IChunk.CHUNK_HEIGHT + y;
-        final int globalZ = chunk.getZ() * IChunk.CHUNK_LENGTH + z;
-        final IChunk neighbor = grid.getChunk(
-                globalX >> IChunk.CHUNK_COORDINATE_BITS,
-                globalY >> IChunk.CHUNK_COORDINATE_BITS,
-                globalZ >> IChunk.CHUNK_COORDINATE_BITS
-        );
-
-        if (neighbor == null || neighbor.isEmpty()) {
-            return Block.AIR;
-        }
-
-        final int blockId = neighbor.getBlockId(
-                globalX & IChunk.CHUNK_COORDINATE_MASK,
-                globalY & IChunk.CHUNK_COORDINATE_MASK,
-                globalZ & IChunk.CHUNK_COORDINATE_MASK
-        );
-
-        return Block.byId(blockId);
+        return Block.byId(grid.getBlockId(
+                chunk.getX() * IChunk.CHUNK_WIDTH + x,
+                chunk.getY() * IChunk.CHUNK_HEIGHT + y,
+                chunk.getZ() * IChunk.CHUNK_LENGTH + z
+        ));
     }
 }

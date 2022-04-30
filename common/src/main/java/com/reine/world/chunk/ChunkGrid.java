@@ -12,11 +12,11 @@ public class ChunkGrid {
 
     @Nullable
     public IChunk getChunk(int x, int y, int z) {
-        return chunkMap.get(ChunkPosition.fromGlobal(x, y, z));
+        return chunkMap.get(new ChunkPosition(x, y, z));
     }
 
     public void setChunk(int x, int y, int z, IChunk chunk) {
-        chunkMap.put(ChunkPosition.fromGlobal(x, y, z), chunk);
+        chunkMap.put(new ChunkPosition(x, y, z), chunk);
     }
 
     public void setBlockId(int x, int y, int z, int blockId) {
