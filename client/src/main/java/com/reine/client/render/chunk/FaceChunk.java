@@ -98,22 +98,22 @@ public class FaceChunk implements Destroyable {
         z += offset.z;
 
         if (x < 0 || x >= IChunk.CHUNK_WIDTH) {
-            Chunk neighbor = grid.getChunk(chunk.getX() + x % IChunk.CHUNK_WIDTH, chunk.getY(), chunk.getZ());
-            if (neighbor == null) {
+            IChunk neighbor = grid.getChunk(chunk.getX() + x % IChunk.CHUNK_WIDTH, chunk.getY(), chunk.getZ());
+            if (neighbor == null || neighbor.isEmpty()) {
                 return Block.AIR;
             }
 
             return Block.byId(neighbor.getBlockId(x & IChunk.CHUNK_COORDINATE_MASK, y, z));
         } else if (y < 0 || y >= IChunk.CHUNK_HEIGHT) {
-            Chunk neighbor = grid.getChunk(chunk.getX(), chunk.getY() + y % IChunk.CHUNK_HEIGHT, chunk.getZ());
-            if (neighbor == null) {
+            IChunk neighbor = grid.getChunk(chunk.getX(), chunk.getY() + y % IChunk.CHUNK_HEIGHT, chunk.getZ());
+            if (neighbor == null || neighbor.isEmpty()) {
                 return Block.AIR;
             }
 
             return Block.byId(neighbor.getBlockId(x, y & IChunk.CHUNK_COORDINATE_MASK, z));
         } else if (z < 0 || z >= IChunk.CHUNK_LENGTH) {
-            Chunk neighbor = grid.getChunk(chunk.getX(), chunk.getY(), chunk.getZ() + z % IChunk.CHUNK_LENGTH);
-            if (neighbor == null) {
+            IChunk neighbor = grid.getChunk(chunk.getX(), chunk.getY(), chunk.getZ() + z % IChunk.CHUNK_LENGTH);
+            if (neighbor == null || neighbor.isEmpty()) {
                 return Block.AIR;
             }
 
