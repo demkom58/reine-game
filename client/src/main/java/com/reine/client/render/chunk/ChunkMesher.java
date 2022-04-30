@@ -36,6 +36,36 @@ public class ChunkMesher {
         return meshes;
     }
 
+    private List<ChunkQuad> simpleQuads(MemoryStack stack, IChunk chunk, ByteBuffer culledFaces) {
+        final List<ChunkQuad> quads = new ArrayList<>();
+
+        for (WorldSide side : WorldSide.values()) {
+            for (int x = 0; x < IChunk.CHUNK_WIDTH; x++) {
+                for (int y = 0; y < IChunk.CHUNK_HEIGHT; y++) {
+                    for (int z = 0; z < IChunk.CHUNK_LENGTH; z++) {
+                        final int index = idx(x, y, z);
+                        final int blockId = chunk.getBlockId(index);
+                        if (blockId <= 0 || !isSideVisible(culledFaces, index, side)) {
+                            continue;
+                        }
+
+                        Vector3f start = side.direction() == Direction.POSITIVE ? side.vec() : new Vector3f();
+                        start.add(x, y, z);
+
+                        Vector3f end = new Vector3f(start);
+                        end.add(side.spaceVec());
+
+                        final ChunkQuad quad = new ChunkQuad(start, end, side, blockId);
+
+                        quads.add(quad);
+                    }
+                }
+            }
+        }
+
+        return quads;
+    }
+
     private List<ChunkQuad> greedyQuads(MemoryStack stack, IChunk chunk, ByteBuffer culledFaces) {
         final ByteBuffer mask = stack.calloc(IChunk.CHUNK_SIZE);
         final List<ChunkQuad> meshes = new ArrayList<>();

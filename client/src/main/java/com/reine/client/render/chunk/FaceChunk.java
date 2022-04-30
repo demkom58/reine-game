@@ -3,10 +3,9 @@ package com.reine.client.render.chunk;
 import com.crown.graphic.util.Destroyable;
 import com.reine.util.WorldSide;
 import com.reine.block.Block;
-import com.reine.world.chunk.Chunk;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.IChunk;
-import org.joml.Vector3i;
+import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
@@ -76,7 +75,7 @@ public class FaceChunk implements Destroyable {
         final Block block = Block.byId(blockId);
         final boolean transparent = block.isTransparent();
         if ((pass == RenderPass.SOLID && !transparent) || (pass == RenderPass.TRANSPARENT && transparent)) {
-            byte sidesMask = 0;
+            byte sidesMask = 0b000000;
 
             // fill visibility of all sides for current block
             for (WorldSide side : WorldSide.values()) {
@@ -92,34 +91,34 @@ public class FaceChunk implements Destroyable {
     }
 
     private static Block getNeighborBlock(ChunkGrid grid, IChunk chunk, int x, int y, int z, WorldSide side) {
-        Vector3i offset = side.facingVector();
+        final Vector3f offset = side.vec();
         x += offset.x;
         y += offset.y;
         z += offset.z;
 
-        if (x < 0 || x >= IChunk.CHUNK_WIDTH) {
-            IChunk neighbor = grid.getChunk(chunk.getX() + x % IChunk.CHUNK_WIDTH, chunk.getY(), chunk.getZ());
-            if (neighbor == null || neighbor.isEmpty()) {
-                return Block.AIR;
-            }
-
-            return Block.byId(neighbor.getBlockId(x & IChunk.CHUNK_COORDINATE_MASK, y, z));
-        } else if (y < 0 || y >= IChunk.CHUNK_HEIGHT) {
-            IChunk neighbor = grid.getChunk(chunk.getX(), chunk.getY() + y % IChunk.CHUNK_HEIGHT, chunk.getZ());
-            if (neighbor == null || neighbor.isEmpty()) {
-                return Block.AIR;
-            }
-
-            return Block.byId(neighbor.getBlockId(x, y & IChunk.CHUNK_COORDINATE_MASK, z));
-        } else if (z < 0 || z >= IChunk.CHUNK_LENGTH) {
-            IChunk neighbor = grid.getChunk(chunk.getX(), chunk.getY(), chunk.getZ() + z % IChunk.CHUNK_LENGTH);
-            if (neighbor == null || neighbor.isEmpty()) {
-                return Block.AIR;
-            }
-
-            return Block.byId(neighbor.getBlockId(x, y, z & IChunk.CHUNK_COORDINATE_MASK));
+        if (x >= 0 && x < IChunk.CHUNK_WIDTH && y >= 0 && y < IChunk.CHUNK_HEIGHT && z >= 0 && z < IChunk.CHUNK_LENGTH) {
+            return Block.byId(chunk.getBlockId(x, y, z));
         }
 
-        return Block.byId(chunk.getBlockId(x, y, z));
+        final int globalX = chunk.getX() * IChunk.CHUNK_WIDTH + x;
+        final int globalY = chunk.getY() * IChunk.CHUNK_HEIGHT + y;
+        final int globalZ = chunk.getZ() * IChunk.CHUNK_LENGTH + z;
+        final IChunk neighbor = grid.getChunk(
+                globalX >> IChunk.CHUNK_COORDINATE_BITS,
+                globalY >> IChunk.CHUNK_COORDINATE_BITS,
+                globalZ >> IChunk.CHUNK_COORDINATE_BITS
+        );
+
+        if (neighbor == null || neighbor.isEmpty()) {
+            return Block.AIR;
+        }
+
+        final int blockId = neighbor.getBlockId(
+                globalX & IChunk.CHUNK_COORDINATE_MASK,
+                globalY & IChunk.CHUNK_COORDINATE_MASK,
+                globalZ & IChunk.CHUNK_COORDINATE_MASK
+        );
+
+        return Block.byId(blockId);
     }
 }
