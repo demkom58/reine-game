@@ -13,18 +13,14 @@ import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.opengl.NVBindlessTexture.glGetTextureHandleNV;
 import static org.lwjgl.opengl.NVBindlessTexture.glMakeTextureHandleResidentNV;
 
-public class BindlessTexture2D implements Destroyable {
-    private final int name;
+public class BindlessTexture2D extends Texture2D {
     private final long handle;
 
     public BindlessTexture2D(int name, long handle) {
-        this.name = name;
+        super(name);
         this.handle = handle;
     }
 
-    public int getName() {
-        return name;
-    }
 
     public long getHandle() {
         return handle;
@@ -33,7 +29,7 @@ public class BindlessTexture2D implements Destroyable {
     @Override
     public void destroy() {
         NVBindlessTexture.glMakeImageHandleNonResidentNV(handle);
-        glDeleteTextures(name);
+        super.destroy();
     }
 
     public static BindlessTexture2D from(GenericImageData texture) {
