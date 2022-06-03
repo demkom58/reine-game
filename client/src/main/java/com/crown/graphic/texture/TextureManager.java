@@ -3,8 +3,10 @@ package com.crown.graphic.texture;
 import com.crown.resource.image.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.lwjgl.system.MemoryStack;
 
 import java.io.File;
+import java.nio.LongBuffer;
 import java.util.*;
 
 import static org.lwjgl.opengl.ARBUniformBufferObject.GL_UNIFORM_BUFFER;
@@ -26,33 +28,39 @@ public class TextureManager {
     }
 
     public void rebuild() {
+        if (uniBufName != 0) {
+            glDeleteBuffers(uniBufName);
+            uniBufName = 0;
+        }
+
+        name2Texture.clear();
+        name2Id.clear();
+
         for (ImageResource resource : textureResources) {
             final String name = resource.name();
             final File file = new File(texturesRoot, name);
             try (StbiImageData load = StbiImageData.load(file)) {
-                BindlessTexture2D tex = BindlessTexture2D.from(load);
-                name2Texture.put(name, tex);
+                name2Texture.put(name, BindlessTexture2D.from(load));
             }
         }
 
-        Collection<BindlessTexture2D> values = name2Texture.values();
-        long[] handles = new long[values.size()];
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            final int size = textureResources.size();
+            final LongBuffer handles = stack.mallocLong(size);
 
-        int[] i = {0};
-        name2Texture.forEach((k, v) -> {
-            int curr = i[0];
+            int i = 0;
+            for (var entry : name2Texture.entrySet()) {
+                handles.put(entry.getValue().getHandle());
+                name2Id.put(entry.getKey(), i);
+                i++;
+            }
 
-            handles[curr] = v.getHandle();
-            name2Id.put(k, curr);
-
-            i[0]++;
-        });
-
-        uniBufName = glGenBuffers();
-        glBindBuffer(GL_UNIFORM_BUFFER, uniBufName);
-        glBufferData(GL_UNIFORM_BUFFER, (long) handles.length * Long.SIZE, GL_STATIC_DRAW);
-        glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniBufName, 0, (long) handles.length * Long.SIZE);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, handles);
+            uniBufName = glGenBuffers();
+            glBindBuffer(GL_UNIFORM_BUFFER, uniBufName);
+            glBufferData(GL_UNIFORM_BUFFER, (long) size * Long.SIZE, GL_STATIC_DRAW);
+            glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniBufName, 0, (long) size * Long.SIZE);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, handles.flip());
+        }
     }
 
     public BindlessTexture2D getByName(String name) {
@@ -65,9 +73,5 @@ public class TextureManager {
 
     public int texturesCount() {
         return name2Texture.size();
-    }
-
-    public int getUniformBufferName() {
-        return uniBufName;
     }
 }
