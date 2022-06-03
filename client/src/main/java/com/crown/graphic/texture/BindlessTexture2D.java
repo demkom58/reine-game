@@ -10,6 +10,8 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
+import static org.lwjgl.opengl.NVBindlessTexture.glGetTextureHandleNV;
+import static org.lwjgl.opengl.NVBindlessTexture.glMakeTextureHandleResidentNV;
 
 public class BindlessTexture2D implements Destroyable {
     private final int name;
@@ -53,10 +55,12 @@ public class BindlessTexture2D implements Destroyable {
 
         float[] aniso = {0.0f};
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+        aniso[0] = Math.min(aniso[0], 4);
+
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso[0]);
 
-        long handle = NVBindlessTexture.glGetTextureHandleNV(name);
-        NVBindlessTexture.glMakeTextureHandleResidentNV(handle);
+        long handle = glGetTextureHandleNV(name);
+        glMakeTextureHandleResidentNV(handle);
 
         return new BindlessTexture2D(name, handle);
     }
