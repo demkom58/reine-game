@@ -12,7 +12,6 @@ import com.reine.block.Block;
 import com.reine.client.render.Renderer;
 import com.reine.client.render.chunk.ChunkRenderer;
 import com.reine.world.chunk.ChunkGrid;
-import com.reine.world.chunk.Chunk;
 import com.reine.world.chunk.IChunk;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
@@ -68,17 +67,20 @@ public class Client extends CrownGame {
             textureManager.registerTexture(tex.getName());
         }
 
-        textureManager.buildAtlas();
+        textureManager.rebuild();
         chunkRenderer = new ChunkRenderer(renderer, textureManager);
 
-        try (Shader vertex = new Shader(getClass().getResource("/shader/vertex.vsh"), true);
-             Shader fragment = new Shader(getClass().getResource("/shader/fragment.fsh"), false)) {
+        try (Shader vertex = new Shader(getClass().getResource("/shader/vertex.vsh"), true,
+                "#version 450 core");
+             Shader fragment = new Shader(getClass().getResource("/shader/fragment.fsh"), false,
+                     "#version 450 core",
+                     "#define TEXTURES_COUNT " + textureManager.texturesCount())) {
             program = new ShaderProgram(vertex, fragment);
         }
 
-        for (int x = 0; x < 3f * IChunk.CHUNK_WIDTH; x++) {
-            for (int y = 0; y < 2f * IChunk.CHUNK_HEIGHT; y++) {
-                for (int z = 0; z < 3f * IChunk.CHUNK_LENGTH; z++) {
+        for (int x = 0; x < 60f * IChunk.CHUNK_WIDTH; x++) {
+            for (int y = 0; y < 1f * IChunk.CHUNK_HEIGHT; y++) {
+                for (int z = 0; z < 60f * IChunk.CHUNK_LENGTH; z++) {
                     chunkGrid.setBlockId(x, y, z,
                             Math.random() > 0.9
                                     ? Block.GLASS.getId()

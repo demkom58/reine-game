@@ -1,6 +1,7 @@
 package com.reine.client.render.chunk;
 
 import com.crown.graphic.shader.ShaderProgram;
+import com.crown.graphic.texture.BindlessTexture2D;
 import com.crown.graphic.texture.TextureManager;
 import com.crown.graphic.unit.Mesh;
 import com.reine.block.Block;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.util.*;
 
@@ -83,7 +85,6 @@ public class ChunkRenderer {
             toRender.add(renderChunks.get(ChunkPosition.fromChunk(chunk)));
         }
 
-        textureManager.getAtlas().use(0);
         glEnable(GL_DEPTH_TEST);
 
         for (RenderChunk chunk : toRender) {
@@ -132,8 +133,8 @@ public class ChunkRenderer {
 
     public Mesh compileMesh(List<ChunkQuad> quads) {
         final int quadsCount = quads.size();
-        final FloatBuffer texB = MemoryUtil.memCallocFloat(quadsCount * 4); // vec4(atlas x, atlas y, tile width, tile height)
-        final FloatBuffer faceB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
+
+        final FloatBuffer texB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(handle, x, y)
         final FloatBuffer posB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
 
         for (ChunkQuad quad : quads) {
@@ -144,53 +145,76 @@ public class ChunkRenderer {
             final WorldSide side = quad.side();
             final Axis axis = side.axis();
 
+            long texId = textureManager.getId(block.getTexture(side));
+
             switch (axis) {
-                case X -> posB.put(new float[]{
-                        str.x, str.y, str.z,
-                        str.x, str.y, end.z,
-                        str.x, end.y, str.z,
+                case X -> {
+                    posB.put(new float[]{
+                            str.x, str.y, str.z,
+                            str.x, str.y, end.z,
+                            str.x, end.y, str.z,
 
-                        str.x, end.y, str.z,
-                        str.x, str.y, end.z,
-                        str.x, end.y, end.z,
-                });
-                case Y -> posB.put(new float[]{
-                        str.x, str.y, str.z,
-                        end.x, str.y, str.z,
-                        str.x, str.y, end.z,
+                            str.x, end.y, str.z,
+                            str.x, str.y, end.z,
+                            str.x, end.y, end.z,
+                    });
+                    texB.put(new float[]{
+                            texId, str.y, str.z,
+                            texId, str.y, end.z,
+                            texId, end.y, str.z,
 
-                        end.x, str.y, str.z,
-                        str.x, str.y, end.z,
-                        end.x, str.y, end.z,
-                });
-                case Z -> posB.put(new float[]{
-                        str.x, str.y, str.z,
-                        end.x, str.y, str.z,
-                        str.x, end.y, str.z,
+                            texId, end.y, str.z,
+                            texId, str.y, end.z,
+                            texId, end.y, end.z,
+                    });
+                }
+                case Y -> {
+                    posB.put(new float[]{
+                            str.x, str.y, str.z,
+                            end.x, str.y, str.z,
+                            str.x, str.y, end.z,
 
-                        end.x, str.y, str.z,
-                        str.x, end.y, str.z,
-                        end.x, end.y, str.z,
-                });
+                            end.x, str.y, str.z,
+                            str.x, str.y, end.z,
+                            end.x, str.y, end.z,
+                    });
+                    texB.put(new float[]{
+                            texId, str.x, str.z,
+                            texId, end.x, str.z,
+                            texId, str.x, end.z,
+
+                            texId, end.x, str.z,
+                            texId, str.x, end.z,
+                            texId, end.x, end.z,
+                    });
+                }
+                case Z -> {
+                    posB.put(new float[]{
+                            str.x, str.y, str.z,
+                            end.x, str.y, str.z,
+                            str.x, end.y, str.z,
+
+                            end.x, str.y, str.z,
+                            str.x, end.y, str.z,
+                            end.x, end.y, str.z,
+                    });
+                    texB.put(new float[]{
+                            texId, str.x, str.y,
+                            texId, end.x, str.y,
+                            texId, str.x, end.y,
+
+                            texId, end.x, str.y,
+                            texId, str.x, end.y,
+                            texId, end.x, end.y,
+                    });
+                }
             }
 
-            Vector3f normal = axis.getVector();
-            faceB.put(new float[] {
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-            });
-            texB.put(textureManager.normalizedDimension(block.getTexture(side)));
         }
 
         return Mesh.triangles()
                 .positions(0, posB.flip(), 3, false)
-                .attribute(1, faceB.flip(), 3, false)
-                .attribute(2, texB.flip(), 4, false)
-                .attributeDivisor(2, 6)
+                .attribute(1, texB.flip(), 3, false)
                 .build();
     }
 

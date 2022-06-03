@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
 public class ShaderProgram implements Destroyable {
@@ -182,6 +182,10 @@ public class ShaderProgram implements Destroyable {
 
     public void setUniformMatrix4fv(String name, boolean transpose, float[] values) {
         glUniformMatrix4fv(glGetUniformLocation(handle, name), transpose, values);
+    }
+
+    public void setUniformBlock(String name, int uniformBlockBinding) {
+        glUniformBlockBinding(handle, glGetUniformBlockIndex(handle, name), uniformBlockBinding);
     }
 
     public float getUniformf(String name) {

@@ -88,8 +88,8 @@ public class TextureAtlas2D extends Texture2D {
     }
 
     @Override
-    public int getHandle() {
-        return super.getHandle();
+    public int getName() {
+        return super.getName();
     }
 
     public int getHeight() {

@@ -16,10 +16,13 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 public class Shader implements Destroyable {
     private final int handle;
 
-    public Shader(URL resource, boolean vertex) {
+    public Shader(URL resource, boolean vertex, String... defines) {
         try {
             this.handle = glCreateShader(vertex ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
-            glShaderSource(handle, Resources.toString(resource, StandardCharsets.UTF_8));
+            final String src = String.join("\n", defines)
+                    + "\n" + Resources.toString(resource, StandardCharsets.UTF_8);
+
+            glShaderSource(handle, src);
             glCompileShader(handle);
 
             try (MemoryStack stack = stackPush()) {
@@ -36,9 +39,9 @@ public class Shader implements Destroyable {
         }
     }
 
-    public Shader(String src, boolean vertex) {
+    public Shader(boolean vertex, String... defines) {
         this.handle = glCreateShader(vertex ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
-        glShaderSource(handle, src);
+        glShaderSource(handle, defines);
         glCompileShader(handle);
 
         try (MemoryStack stack = stackPush()) {

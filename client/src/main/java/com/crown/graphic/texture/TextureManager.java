@@ -1,139 +1,73 @@
 package com.crown.graphic.texture;
 
 import com.crown.resource.image.*;
-import com.crown.resource.image.filter.DownscaleKernel;
-import org.joml.Vector2f;
-import org.lwjgl.system.MemoryStack;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
-import javax.imageio.ImageIO;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.IntBuffer;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
-import static org.lwjgl.opengl.GL33.GL_MAX_TEXTURE_SIZE;
-import static org.lwjgl.opengl.GL33.glGetInteger;
-import static org.lwjgl.system.MemoryStack.stackPush;
+import static org.lwjgl.opengl.ARBUniformBufferObject.GL_UNIFORM_BUFFER;
+import static org.lwjgl.opengl.GL33.*;
 
 public class TextureManager {
     private final File texturesRoot = new File("assets/textures/");
     private final Set<ImageResource> textureResources = new HashSet<>();
-    private final Map<String, ImageDimension> nameDim = new HashMap<>();
-    private final Map<String, float[]> nameNormDim = new HashMap<>();
+    private final Map<String, BindlessTexture2D> name2Texture = new HashMap<>();
+    private final Object2IntMap<String> name2Id = new Object2IntOpenHashMap<>();
 
-    private TextureAtlas2D atlas;
-    private boolean atlasChanged = true;
+    private int uniBufName = 0;
 
     public TextureManager() {
     }
 
     public void registerTexture(String name) {
-        boolean added = textureResources.add(new ImageResource(name));
-        if (added) {
-            atlasChanged = true;
-        }
+        textureResources.add(new ImageResource(name));
     }
 
-    public float u(String id, int x) {
-        return atlas.u(id, x);
-    }
-
-    public float v(String id, int v) {
-        return atlas.v(id, v);
-    }
-
-    public Vector2f uv(String id, int u, int v) {
-        return atlas.uv(id, u, v);
-    }
-
-    public void buildAtlas() {
-        final int maxTextureSize = glGetInteger(GL_MAX_TEXTURE_SIZE);
-
-        final Map<String, ImageInfo> textures = new HashMap<>();
-        try (MemoryStack stack = stackPush()) {
-            IntBuffer widthBuff = stack.mallocInt(1);
-            IntBuffer heightBuff = stack.mallocInt(1);
-            IntBuffer channelBuff = stack.mallocInt(1);
-
-            for (ImageResource resource : textureResources) {
-                final String name = resource.name();
-                final ImageInfo info = ImageInfo.read(new File(texturesRoot, name),
-                        widthBuff.rewind(), heightBuff.rewind(), channelBuff.rewind());
-                textures.put(name, info);
+    public void rebuild() {
+        for (ImageResource resource : textureResources) {
+            final String name = resource.name();
+            final File file = new File(texturesRoot, name);
+            try (StbiImageData load = StbiImageData.load(file)) {
+                BindlessTexture2D tex = BindlessTexture2D.from(load);
+                name2Texture.put(name, tex);
             }
-
-            long genStart = System.currentTimeMillis();
-
-            List<AtlasImage> atlases = new ArrayList<>();
-            try  {
-                final AtlasImage image = AtlasImage.createParallel(maxTextureSize, maxTextureSize, textures).get();
-                atlases.add(image);
-
-                for (int mipmapLevel = 1; mipmapLevel < 5; mipmapLevel++) {
-                    atlases.add(AtlasImage.mipmap(DownscaleKernel.BLACKMAN_SINC, image, mipmapLevel));
-                }
-
-                long generatedFor = System.currentTimeMillis() - genStart;
-                System.out.println("Atlas generation done for " + (generatedFor / 1000f) + "sec");
-
-                nameDim.clear();
-                nameDim.putAll(image.getPositions());
-
-                // todo: add caching
-                if (!textureResources.isEmpty()) {
-                    for (int i = 0; i < atlases.size(); i++) {
-                        AtlasImage img = atlases.get(i);
-                        GenericImageData data = img.getData();
-                        try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("atlas-" + i + ".png"))) {
-                            ImageIO.write(data.toBufferedImage(), "png", out);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                atlas = TextureAtlas2D.from(atlases);
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-            } finally {
-                for (AtlasImage atlasImage : atlases) {
-                    atlasImage.destroy();
-                }
-            }
-
-            nameNormDim.clear();
-            nameDim.forEach((k, v) -> {
-                float atlasWidth = atlas.getWidth();
-                float atlasHeight = atlas.getHeight();
-
-                int tileX = v.x();
-                int tileY = v.y();
-
-                float x = tileX / atlasWidth;
-                float y = tileY / atlasHeight;
-                float w = (tileX + v.width()) / atlasWidth - x;
-                float h = (tileY + v.height()) / atlasHeight - y;
-
-
-                nameNormDim.put(k, new float[]{x, y, w, h});
-            });
         }
 
-        atlasChanged = false;
+        Collection<BindlessTexture2D> values = name2Texture.values();
+        long[] handles = new long[values.size()];
+
+        int[] i = {0};
+        name2Texture.forEach((k, v) -> {
+            int curr = i[0];
+
+            handles[curr] = v.getHandle();
+            name2Id.put(k, curr);
+
+            i[0]++;
+        });
+
+        uniBufName = glGenBuffers();
+        glBindBuffer(GL_UNIFORM_BUFFER, uniBufName);
+        glBufferData(GL_UNIFORM_BUFFER, (long) handles.length * Long.SIZE, GL_STATIC_DRAW);
+        glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniBufName, 0, (long) handles.length * Long.SIZE);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, handles);
     }
 
-    public boolean isAtlasChanged() {
-        return atlasChanged;
+    public BindlessTexture2D getByName(String name) {
+        return name2Texture.get(name);
     }
 
-    public float[] normalizedDimension(String name) {
-        return nameNormDim.get(name);
+    public int getId(String name) {
+        return name2Id.getInt(name);
     }
 
-    public TextureAtlas2D getAtlas() {
-        return atlas;
+    public int texturesCount() {
+        return name2Texture.size();
+    }
+
+    public int getUniformBufferName() {
+        return uniBufName;
     }
 }

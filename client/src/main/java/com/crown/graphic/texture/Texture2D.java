@@ -6,24 +6,24 @@ import com.crown.resource.image.GenericImageData;
 import static org.lwjgl.opengl.GL33.*;
 
 public class Texture2D implements Destroyable {
-    private final int handle;
+    private final int name;
 
-    public Texture2D(int handle) {
-        this.handle = handle;
+    public Texture2D(int name) {
+        this.name = name;
     }
 
-    public int getHandle() {
-        return handle;
+    public int getName() {
+        return name;
     }
 
     @Override
     public void destroy() {
-        glDeleteTextures(handle);
+        glDeleteTextures(name);
     }
 
     public void use(int index) {
         glActiveTexture(GL_TEXTURE0 + index);
-        glBindTexture(GL_TEXTURE_2D, handle);
+        glBindTexture(GL_TEXTURE_2D, name);
     }
 
     public static Texture2D from(GenericImageData texture) {

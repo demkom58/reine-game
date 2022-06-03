@@ -4,10 +4,7 @@ import com.crown.graphic.util.Destroyable;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
+import java.nio.*;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
@@ -152,6 +149,18 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, int[] usedVb
         }
 
         public Builder attribute(int index, FloatBuffer values, int count, boolean normalized) {
+            int vboId = glGenBuffers();
+            vbo.add(vboId);
+
+            glBindBuffer(GL_ARRAY_BUFFER, vboId);
+            glBufferData(GL_ARRAY_BUFFER, values, GL_STATIC_DRAW);
+            glVertexAttribPointer(index, count, GL_FLOAT, normalized, 0, 0);
+            glEnableVertexAttribArray(index);
+
+            return this;
+        }
+
+        public Builder attribute(int index, DoubleBuffer values, int count, boolean normalized) {
             int vboId = glGenBuffers();
             vbo.add(vboId);
 
