@@ -1,13 +1,17 @@
 package com.crown.graphic.texture;
 
-import com.crown.resource.image.*;
+import com.crown.resource.image.ImageResource;
+import com.crown.resource.image.StbiImageData;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.File;
 import java.nio.LongBuffer;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.lwjgl.opengl.ARBUniformBufferObject.GL_UNIFORM_BUFFER;
 import static org.lwjgl.opengl.GL33.*;
@@ -46,7 +50,7 @@ public class TextureManager {
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
             final int size = textureResources.size();
-            final LongBuffer handles = stack.mallocLong(size);
+            final LongBuffer handles = stack.callocLong(size);
 
             int i = 0;
             for (var entry : name2Texture.entrySet()) {
@@ -54,12 +58,14 @@ public class TextureManager {
                 name2Id.put(entry.getKey(), i);
                 i++;
             }
+            handles.flip();
 
             uniBufName = glGenBuffers();
             glBindBuffer(GL_UNIFORM_BUFFER, uniBufName);
-            glBufferData(GL_UNIFORM_BUFFER, (long) size * Long.SIZE, GL_STATIC_DRAW);
-            glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniBufName, 0, (long) size * Long.SIZE);
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, handles.flip());
+            glBufferData(GL_UNIFORM_BUFFER, (long) handles.remaining() * Long.BYTES, GL_STATIC_DRAW);
+            glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniBufName, 0, (long) handles.remaining() * Long.BYTES);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, handles);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }
     }
 

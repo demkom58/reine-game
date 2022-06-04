@@ -1,7 +1,7 @@
 #extension GL_NV_bindless_texture   : require
 #extension GL_NV_gpu_shader5        : require
 
-layout(std140, binding = 0) uniform Textures {
+layout(binding = 0) uniform Textures {
     uint64_t tex_handles[TEXTURES_COUNT];
 };
 

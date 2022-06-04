@@ -112,37 +112,37 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, int[] usedVb
             return this;
         }
 
-        public Builder attribute(int index, ByteBuffer values, int count, boolean normalized) {
+        public Builder attribute(int index, ByteBuffer values, int count) {
             int vboId = glGenBuffers();
             vbo.add(vboId);
 
             glBindBuffer(GL_ARRAY_BUFFER, vboId);
             glBufferData(GL_ARRAY_BUFFER, values, GL_STATIC_DRAW);
-            glVertexAttribPointer(index, count, GL_BYTE, normalized, 0, 0);
+            glVertexAttribIPointer(index, count, GL_BYTE, 0, 0);
             glEnableVertexAttribArray(index);
 
             return this;
         }
 
-        public Builder attribute(int index, ShortBuffer values, int count, boolean normalized) {
+        public Builder attribute(int index, ShortBuffer values, int count) {
             int vboId = glGenBuffers();
             vbo.add(vboId);
 
             glBindBuffer(GL_ARRAY_BUFFER, vboId);
             glBufferData(GL_ARRAY_BUFFER, values, GL_STATIC_DRAW);
-            glVertexAttribPointer(index, count, GL_SHORT, normalized, 0, 0);
+            glVertexAttribIPointer(index, count, GL_SHORT, 0, 0);
             glEnableVertexAttribArray(index);
 
             return this;
         }
 
-        public Builder attribute(int index, IntBuffer values, int count, boolean normalized) {
+        public Builder attributeUnsigned(int index, IntBuffer values, int count) {
             int vboId = glGenBuffers();
             vbo.add(vboId);
 
             glBindBuffer(GL_ARRAY_BUFFER, vboId);
             glBufferData(GL_ARRAY_BUFFER, values, GL_STATIC_DRAW);
-            glVertexAttribPointer(index, count, GL_INT, normalized, 0, 0);
+            glVertexAttribIPointer(index, count, GL_UNSIGNED_INT, 0, 0);
             glEnableVertexAttribArray(index);
 
             return this;
@@ -166,7 +166,7 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, int[] usedVb
 
             glBindBuffer(GL_ARRAY_BUFFER, vboId);
             glBufferData(GL_ARRAY_BUFFER, values, GL_STATIC_DRAW);
-            glVertexAttribPointer(index, count, GL_FLOAT, normalized, 0, 0);
+            glVertexAttribPointer(index, count, GL_DOUBLE, normalized, 0, 0);
             glEnableVertexAttribArray(index);
 
             return this;

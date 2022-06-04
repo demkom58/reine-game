@@ -1,7 +1,6 @@
 package com.reine.client.render.chunk;
 
 import com.crown.graphic.shader.ShaderProgram;
-import com.crown.graphic.texture.BindlessTexture2D;
 import com.crown.graphic.texture.TextureManager;
 import com.crown.graphic.unit.Mesh;
 import com.reine.block.Block;
@@ -15,8 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
-import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.*;
 
 import static com.reine.world.chunk.IChunk.*;
@@ -134,7 +133,8 @@ public class ChunkRenderer {
     public Mesh compileMesh(List<ChunkQuad> quads) {
         final int quadsCount = quads.size();
 
-        final FloatBuffer texB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(handle, x, y)
+        final IntBuffer texB = MemoryUtil.memCallocInt(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount); // texId
+        final FloatBuffer uvB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 2); // vec2(x, y)
         final FloatBuffer posB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
 
         for (ChunkQuad quad : quads) {
@@ -145,7 +145,7 @@ public class ChunkRenderer {
             final WorldSide side = quad.side();
             final Axis axis = side.axis();
 
-            long texId = textureManager.getId(block.getTexture(side));
+            int texId = textureManager.getId(block.getTexture(side));
 
             switch (axis) {
                 case X -> {
@@ -158,14 +158,14 @@ public class ChunkRenderer {
                             str.x, str.y, end.z,
                             str.x, end.y, end.z,
                     });
-                    texB.put(new float[]{
-                            texId, str.y, str.z,
-                            texId, str.y, end.z,
-                            texId, end.y, str.z,
+                    uvB.put(new float[]{
+                            str.y, str.z,
+                            str.y, end.z,
+                            end.y, str.z,
 
-                            texId, end.y, str.z,
-                            texId, str.y, end.z,
-                            texId, end.y, end.z,
+                            end.y, str.z,
+                            str.y, end.z,
+                            end.y, end.z,
                     });
                 }
                 case Y -> {
@@ -178,14 +178,14 @@ public class ChunkRenderer {
                             str.x, str.y, end.z,
                             end.x, str.y, end.z,
                     });
-                    texB.put(new float[]{
-                            texId, str.x, str.z,
-                            texId, end.x, str.z,
-                            texId, str.x, end.z,
+                    uvB.put(new float[]{
+                            str.x, str.z,
+                            end.x, str.z,
+                            str.x, end.z,
 
-                            texId, end.x, str.z,
-                            texId, str.x, end.z,
-                            texId, end.x, end.z,
+                            end.x, str.z,
+                            str.x, end.z,
+                            end.x, end.z,
                     });
                 }
                 case Z -> {
@@ -198,23 +198,26 @@ public class ChunkRenderer {
                             str.x, end.y, str.z,
                             end.x, end.y, str.z,
                     });
-                    texB.put(new float[]{
-                            texId, str.x, str.y,
-                            texId, end.x, str.y,
-                            texId, str.x, end.y,
+                    uvB.put(new float[]{
+                            str.x, str.y,
+                            end.x, str.y,
+                            str.x, end.y,
 
-                            texId, end.x, str.y,
-                            texId, str.x, end.y,
-                            texId, end.x, end.y,
+                            end.x, str.y,
+                            str.x, end.y,
+                            end.x, end.y,
                     });
                 }
             }
 
+            texB.put(texId);
         }
 
         return Mesh.triangles()
                 .positions(0, posB.flip(), 3, false)
-                .attribute(1, texB.flip(), 3, false)
+                .attribute(1, uvB.flip(), 2, false)
+                .attributeUnsigned(2, texB.flip(), 1)
+                .attributeDivisor(2, 6)
                 .build();
     }
 
