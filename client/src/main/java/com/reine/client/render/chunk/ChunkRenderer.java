@@ -86,6 +86,7 @@ public class ChunkRenderer {
         }
 
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
 
         for (RenderChunk chunk : toRender) {
             renderSolid(program, chunk);
@@ -95,7 +96,9 @@ public class ChunkRenderer {
             renderTransparent(program, chunk);
         }
 
+        glDisable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
+
         glBindVertexArray(0);
     }
 
@@ -142,10 +145,8 @@ public class ChunkRenderer {
             final Vector3f end = quad.end();
 
             final WorldSide side = quad.side();
-            final Axis axis = side.axis();
-
-            switch (axis) {
-                case X -> posB.put(new float[]{
+            switch (side) {
+                case WEST -> posB.put(new float[]{
                         str.x, str.y, str.z,
                         str.x, str.y, end.z,
                         str.x, end.y, str.z,
@@ -154,28 +155,56 @@ public class ChunkRenderer {
                         str.x, str.y, end.z,
                         str.x, end.y, end.z,
                 });
-                case Y -> posB.put(new float[]{
+                case EAST -> posB.put(new float[]{
+                        str.x, str.y, str.z,
+                        str.x, end.y, str.z,
+                        str.x, str.y, end.z,
+
+                        str.x, str.y, end.z,
+                        str.x, end.y, str.z,
+                        str.x, end.y, end.z,
+                });
+                case DOWN -> posB.put(new float[]{
                         str.x, str.y, str.z,
                         end.x, str.y, str.z,
                         str.x, str.y, end.z,
+
+                        str.x, str.y, end.z,
+                        end.x, str.y, str.z,
+                        end.x, str.y, end.z,
+                });
+                case UP -> posB.put(new float[]{
+                        str.x, str.y, str.z,
+                        str.x, str.y, end.z,
+                        end.x, str.y, str.z,
 
                         end.x, str.y, str.z,
                         str.x, str.y, end.z,
                         end.x, str.y, end.z,
                 });
-                case Z -> posB.put(new float[]{
-                        str.x, str.y, str.z,
+                case NORTH -> posB.put(new float[]{
                         end.x, str.y, str.z,
+                        str.x, str.y, str.z,
                         str.x, end.y, str.z,
 
                         end.x, str.y, str.z,
                         str.x, end.y, str.z,
                         end.x, end.y, str.z,
                 });
+                case SOUTH -> posB.put(new float[]{
+                        str.x, str.y, str.z,
+                        end.x, str.y, str.z,
+                        str.x, end.y, str.z,
+
+                        str.x, end.y, str.z,
+                        end.x, str.y, str.z,
+                        end.x, end.y, str.z,
+                });
             }
 
             int texId = textureManager.getId(Block.byId(quad.blockId()).getTexture(side));
-            Vector3f normal = axis.getVector();
+            Vector3f normal = side.axis().getVector();
+
             for (int i = 0; i < 6; i++) {
                 faceB.put(new int[] {(int) normal.x, (int) normal.y, (int) normal.z, texId});
             }
