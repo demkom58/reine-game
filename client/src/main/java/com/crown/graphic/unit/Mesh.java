@@ -5,12 +5,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.nio.*;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.glDisableVertexAttribArray;
-import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.opengl.GL33.glVertexAttribDivisor;
+import static org.lwjgl.opengl.GL33.*;
 
 public record Mesh(int mode, int vertexCount, int vaoId, int eboId, int[] usedVbo) implements Destroyable {
     public static final Mesh EMPTY = Mesh.triangles().build();

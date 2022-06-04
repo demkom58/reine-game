@@ -141,11 +141,8 @@ public class ChunkRenderer {
             final Vector3f str = quad.start();
             final Vector3f end = quad.end();
 
-            final Block block = Block.byId(quad.blockId());
             final WorldSide side = quad.side();
             final Axis axis = side.axis();
-
-            int texId = textureManager.getId(block.getTexture(side));
 
             switch (axis) {
                 case X -> posB.put(new float[]{
@@ -177,6 +174,7 @@ public class ChunkRenderer {
                 });
             }
 
+            int texId = textureManager.getId(Block.byId(quad.blockId()).getTexture(side));
             Vector3f normal = axis.getVector();
             for (int i = 0; i < 6; i++) {
                 faceB.put(new int[] {(int) normal.x, (int) normal.y, (int) normal.z, texId});
