@@ -203,7 +203,7 @@ public class ChunkRenderer {
             }
 
             int texId = textureManager.getId(Block.byId(quad.blockId()).getTexture(side));
-            Vector3f normal = side.axis().getVector();
+            Vector3f normal = side.vec();
 
             for (int i = 0; i < 6; i++) {
                 faceB.put(new int[] {(int) normal.x, (int) normal.y, (int) normal.z, texId});
@@ -212,7 +212,7 @@ public class ChunkRenderer {
 
         return Mesh.triangles()
                 .positions(0, posB.flip(), 3, false)
-                .attributeUnsigned(1, faceB.flip(), 4)
+                .attribute(1, faceB.flip(), 4)
                 .build();
     }
 

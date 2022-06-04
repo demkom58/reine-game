@@ -6,14 +6,14 @@ layout(binding = 0) uniform Textures {
 };
 
 in vec3 Pos;
-in flat uvec4 Face;
+in flat ivec4 Face;
 
 out vec4 FragColor;
 
 void main() {
     float u = dot(Face.yxz, Pos.xzx);
     float v = dot(Face.yxz, Pos.zyy);
-    vec2 tileUV = fract(vec2(u, v));
+    vec2 tileUV = fract(abs(vec2(u, v)));
 
     sampler2D sampler = sampler2D(tex_handles[Face.w]);
 

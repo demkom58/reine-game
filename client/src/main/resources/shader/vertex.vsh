@@ -3,10 +3,10 @@ uniform mat4 view;
 uniform mat4 projection;
 
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in uvec4 aFace;
+layout (location = 1) in ivec4 aFace;
 
 out vec3 Pos;
-out flat uvec4 Face;
+out flat ivec4 Face;
 
 void main()
 {
