@@ -8,6 +8,7 @@ import com.crown.graphic.texture.TextureManager;
 import com.crown.input.keyboard.Keyboard;
 import com.crown.input.mouse.Mouse;
 import com.crown.output.window.Window;
+import com.crown.util.UpdateCounter;
 import com.reine.block.Block;
 import com.reine.client.render.Renderer;
 import com.reine.client.render.chunk.ChunkRenderer;
@@ -98,12 +99,18 @@ public class Client extends CrownGame {
 
     float cosTime;
     Quaternionf modelRotation = new Quaternionf();
+    UpdateCounter updateCounter;
 
     private void loop() {
+        updateCounter = new UpdateCounter(c ->
+                System.out.println(c.getAverageTime() + "ms/frame ~ " + c.getUpdates() + " fps"));
+
         window.show();
         window.focus();
 
         while (!window.isShouldClose()) {
+            updateCounter.update();
+
             handleInput();
             update();
             render();
