@@ -20,11 +20,16 @@ import org.joml.Vector3f;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Set;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL33.*;
 
 public class Client extends CrownGame {
+    private static final String[] REQUIRED_EXTENSIONS = {
+            "GL_ARB_gpu_shader_int64",
+            "GL_ARB_bindless_texture",
+    };
 
     ShaderProgram program;
 
@@ -39,6 +44,11 @@ public class Client extends CrownGame {
 
     public Client() {
         super(400, 300, "Reine");
+
+        Set<String> notSupported = GraphicsLibrary.isNotSupportedExtensions(REQUIRED_EXTENSIONS);
+        if (!notSupported.isEmpty()) {
+            throw new Error("Platform not supports extensions: " + String.join(", ", notSupported));
+        }
 
         mouse = new Mouse(window);
         keyboard = new Keyboard(window);

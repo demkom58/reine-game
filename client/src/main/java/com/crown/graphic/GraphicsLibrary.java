@@ -5,6 +5,10 @@ import com.reine.util.OperatingSystem;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.system.MemoryUtil;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL13.GL_MULTISAMPLE;
@@ -36,6 +40,22 @@ public final class GraphicsLibrary {
         if (glfwErrorCallback != null) {
             glfwErrorCallback.free();
         }
+    }
+
+    public static boolean isExtensionSupported(String name) {
+        return glfwExtensionSupported(name);
+    }
+
+    public static Set<String> isNotSupportedExtensions(String... names) {
+        final Set<String> notSupported = new HashSet<>();
+
+        for (int i = 0; i < names.length; i++) {
+            if (!isExtensionSupported(names[i])) {
+                notSupported.add(names[i]);
+            }
+        }
+
+        return notSupported;
     }
 
     public static void enableMultiSampling() {
