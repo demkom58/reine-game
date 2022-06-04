@@ -119,6 +119,18 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, int[] usedVb
             return this;
         }
 
+        public Builder attribute(int index, IntBuffer values, int count) {
+            int vboId = glGenBuffers();
+            vbo.add(vboId);
+
+            glBindBuffer(GL_ARRAY_BUFFER, vboId);
+            glBufferData(GL_ARRAY_BUFFER, values, GL_STATIC_DRAW);
+            glVertexAttribIPointer(index, count, GL_INT, 0, 0);
+            glEnableVertexAttribArray(index);
+
+            return this;
+        }
+
         public Builder attribute(int index, ShortBuffer values, int count) {
             int vboId = glGenBuffers();
             vbo.add(vboId);
