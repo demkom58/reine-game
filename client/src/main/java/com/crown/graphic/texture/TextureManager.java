@@ -44,7 +44,7 @@ public class TextureManager {
             final String name = resource.name();
             final File file = new File(texturesRoot, name);
             try (StbiImageData load = StbiImageData.load(file)) {
-                name2Texture.put(name, BindlessTexture2D.from(load));
+                name2Texture.put(name, BindlessTexture2D.from(load, 1));
             }
         }
 

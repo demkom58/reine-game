@@ -32,7 +32,7 @@ public class BindlessTexture2D extends Texture2D {
         super.destroy();
     }
 
-    public static BindlessTexture2D from(GenericImageData texture) {
+    public static BindlessTexture2D from(GenericImageData texture, int anisoLevel) {
         if (texture == null) {
             throw new IllegalStateException("Failed to load texture!");
         }
@@ -51,7 +51,7 @@ public class BindlessTexture2D extends Texture2D {
 
         float[] aniso = {0.0f};
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
-        aniso[0] = Math.min(aniso[0], 4);
+        aniso[0] = Math.min(aniso[0], anisoLevel);
 
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso[0]);
 
