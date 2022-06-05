@@ -12,13 +12,16 @@ import com.crown.util.UpdateCounter;
 import com.reine.block.Block;
 import com.reine.client.render.Renderer;
 import com.reine.client.render.chunk.ChunkRenderer;
+import com.reine.client.save.minecaft.anvil.AnvilLoader;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.IChunk;
 import org.jetbrains.annotations.NotNull;
+import org.jglrxavpok.hephaistos.mca.AnvilException;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 
@@ -60,10 +63,10 @@ public class Client extends CrownGame {
         camera.updateProjection(400, 300);
 
         GraphicsLibrary.enableMultiSampling();
-        window.setSampling(GLFW_SAMPLES, 4);
+        window.setSampling(GLFW_SAMPLES, 2);
     }
 
-    public void start() {
+    public void start() throws RuntimeException {
         File texturesDirectory = new File("assets/textures/");
         File[] textures = texturesDirectory.listFiles();
         if (textures == null) {
@@ -89,19 +92,39 @@ public class Client extends CrownGame {
             program = new ShaderProgram(vertex, fragment);
         }
 
-        for (int x = 0; x < 10f * IChunk.CHUNK_WIDTH; x++) {
-            for (int y = 0; y < 1f * IChunk.CHUNK_HEIGHT; y++) {
-                for (int z = 0; z < 60f * IChunk.CHUNK_LENGTH; z++) {
-                    chunkGrid.setBlockId(x, y, z,
-                            Math.random() > 0.9
-                                    ? Block.GLASS.getId()
-                                    : Block.BOOKSHELF.getId()
-                    );
-//                    chunkGrid.setBlockId(x, y, z, Block.GLASS.getId());
-//                    chunkGrid.setBlockId(x, y, z, (int) (Math.random() * Block.values().size()));
+
+        File save = new File("saves/Drehmal v2.1.1 PRIMORDIAL");
+        try (AnvilLoader anvilLoader = new AnvilLoader(save)) {
+            for (int x = 0; x < 90; x++) {
+                for (int y = 0; y < 16; y++) {
+                    for (int z = 0; z < 90; z++) {
+                        try {
+                            IChunk iChunk = anvilLoader.loadChunk(x, y, z);
+                            chunkGrid.setChunk(x, y, z, iChunk);
+                        } catch (AnvilException | IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+//        for (int x = 0; x < 10f * IChunk.CHUNK_WIDTH; x++) {
+//            for (int y = 0; y < 1f * IChunk.CHUNK_HEIGHT; y++) {
+//                for (int z = 0; z < 60f * IChunk.CHUNK_LENGTH; z++) {
+//                    chunkGrid.setBlockId(x, y, z,
+//                            Math.random() > 0.9
+//                                    ? Block.GLASS.getId()
+//                                    : Block.BOOKSHELF.getId()
+//                    );
+////                    chunkGrid.setBlockId(x, y, z, Block.GLASS.getId());
+////                    chunkGrid.setBlockId(x, y, z, (int) (Math.random() * Block.values().size()));
+//                }
+//            }
+//        }
 
         chunkGrid.loadedChunks().forEach(c -> chunkRenderer.setChunk(chunkGrid, c));
         loop();
@@ -132,7 +155,7 @@ public class Client extends CrownGame {
     private final Vector3f velocity = new Vector3f();
 
     private void handleInput() {
-        final float camSpeed = 0.05f;
+        final float camSpeed = 0.5f;
         float rotZ = 0.0f;
         float rotY = 0.0f;
         float rotX = 0.0f;

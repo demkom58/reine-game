@@ -103,20 +103,28 @@ public class ChunkRenderer {
     }
 
     private void renderSolid(ShaderProgram program, RenderChunk chunk) {
+        Mesh solid = chunk.passes().get(RenderPass.SOLID);
+        if (solid == null) {
+            return;
+        }
+
         setChunkPosition(program, chunk);
 
-        Mesh solid = chunk.passes().get(RenderPass.SOLID);
         solid.bind();
         solid.draw();
     }
 
     private void renderTransparent(ShaderProgram program, RenderChunk chunk) {
+        Mesh transparent = chunk.passes().get(RenderPass.TRANSPARENT);
+        if (transparent == null) {
+            return;
+        }
+
         setChunkPosition(program, chunk);
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
 
-        Mesh transparent = chunk.passes().get(RenderPass.TRANSPARENT);
         transparent.bind();
         transparent.draw();
 
