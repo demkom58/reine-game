@@ -33,6 +33,10 @@ public class BindlessTexture2D extends Texture2D {
     }
 
     public static BindlessTexture2D from(GenericImageData texture, int anisoLevel) {
+        return from(texture, anisoLevel, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+    }
+
+    public static BindlessTexture2D from(GenericImageData texture, int anisoLevel, int minFilter, int magFilter) {
         if (texture == null) {
             throw new IllegalStateException("Failed to load texture!");
         }
@@ -42,12 +46,15 @@ public class BindlessTexture2D extends Texture2D {
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
         glTexImage2D(GL_TEXTURE_2D, 0, texture.format().glType, texture.width(), texture.height(), 0,
                 GL_RGBA, GL_UNSIGNED_BYTE, texture.bytes());
-        glGenerateMipmap(GL_TEXTURE_2D);
+
+        if (minFilter != GL_NEAREST && minFilter != GL_LINEAR) {
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
 
         float[] aniso = {0.0f};
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
