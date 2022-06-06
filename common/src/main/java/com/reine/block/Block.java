@@ -12,7 +12,7 @@ public class Block {
     public static final Block AIR = new Block(0, true, null);
     public static final Block BEDROCK = new Block(1, false, "bedrock.png");
     public static final Block DIRT = new Block(2, false, "dirt.png");
-    public static final Block GRASS = new Block(3, false, "grass.png");
+    public static final Block GRASS = new Block(3, true, "grass.png");
     public static final Block STONE = new Block(4, false, "stone.png");
     public static final Block COBBLESTONE = new Block(5, false, "cobblestone.png");
     public static final Block GLASS = new Block(6, true, "glass.png");
@@ -27,6 +27,23 @@ public class Block {
     public static final Block GRAVEL = new Block(15, false, "gravel.png");
     public static final Block LEAVES = new Block(16, true, "leaves.png");
     public static final Block INVALID = new Block(17, false, "invalid.png");
+    public static final Block DIORITE = new Block(18, false, "diorite.png");
+    public static final Block OAK_WOOD = new Block(19, false, "oak_wood.png");
+    public static final Block OBSIDIAN = new Block(20, false, "obsidian.png");
+    public static final Block GRANITE = new Block(21, false, "granite.png");
+    public static final Block ANDESITE = new Block(22, false, "andesite.png");
+    public static final Block COAL_ORE = new Block(23, false, "coal_ore.png");
+    public static final Block LAPIS_ORE = new Block(24, false, "lapis_ore.png");
+    public static final Block REDSTONE_ORE = new Block(25, false, "redstone_ore.png");
+    public static final Block GOLD_ORE = new Block(26, false, "gold_ore.png");
+    public static final Block DIAMOND_ORE = new Block(27, false, "diamond_ore.png");
+    public static final Block EMERALD_ORE = new Block(28, false, "emerald_ore.png");
+    public static final Block BRICH_WOOD = new Block(29, false, "brich_wood.png");
+    public static final Block IRON_ORE = new Block(30, false, "iron_ore.png");
+    public static final Block MOSSY_COBBLESTONE = new Block(31, false, "mossy_cobblestone.png");
+    public static final Block GRASS_BLOCK = new Block(32, false, "grass_block.png");
+    public static final Block WHEAT_BLOCK = new Block(33, true, "wheat.png");
+    public static final Block FARMLAND_BLOCK = new Block(34, false, "farmland.png");
 
     private final int id;
     private final boolean transparent;

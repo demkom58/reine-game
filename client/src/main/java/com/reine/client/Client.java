@@ -61,9 +61,10 @@ public class Client extends CrownGame {
 
         camera.setZFar(1000);
         camera.updateProjection(400, 300);
+        camera.moveY(-100);
 
         GraphicsLibrary.enableMultiSampling();
-        window.setSampling(GLFW_SAMPLES, 2);
+        window.setSampling(GLFW_SAMPLES, 4);
     }
 
     public void start() throws RuntimeException {
@@ -95,9 +96,9 @@ public class Client extends CrownGame {
 
         File save = new File("saves/Drehmal v2.1.1 PRIMORDIAL");
         try (AnvilLoader anvilLoader = new AnvilLoader(save)) {
-            for (int x = 0; x < 90; x++) {
+            for (int x = 0; x < 25; x++) {
                 for (int y = 0; y < 16; y++) {
-                    for (int z = 0; z < 90; z++) {
+                    for (int z = 0; z < 25; z++) {
                         try {
                             IChunk iChunk = anvilLoader.loadChunk(x, y, z);
                             chunkGrid.setChunk(x, y, z, iChunk);
@@ -108,6 +109,9 @@ public class Client extends CrownGame {
                     }
                 }
             }
+
+            System.out.println("Invalid loads stats: ");
+            anvilLoader.getInvalidStatistics().forEach((k, v) -> System.out.println(k + ": " + v));
         } catch (Exception e) {
             e.printStackTrace();
         }
