@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
+import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
@@ -42,11 +44,11 @@ public class TextureAtlas2D extends Texture2D {
         );
     }
 
-    public static TextureAtlas2D from(AtlasImage atlasImage) {
-        return from(Collections.singletonList(atlasImage));
+    public static TextureAtlas2D from(AtlasImage atlasImage, int anisoLevel) {
+        return from(Collections.singletonList(atlasImage), anisoLevel, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
     }
 
-    public static TextureAtlas2D from(List<AtlasImage> atlasMipMaps) {
+    public static TextureAtlas2D from(List<AtlasImage> atlasMipMaps, int anisoLevel, int minFilter, int magFilter) {
         AtlasImage sourceAtlas = atlasMipMaps.get(0);
         GenericImageData texture = sourceAtlas.getData();
 
@@ -60,6 +62,22 @@ public class TextureAtlas2D extends Texture2D {
         int handle = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, handle);
 
+        float[] aniso = {0.0f};
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+        aniso[0] = Math.min(aniso[0], anisoLevel);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso[0]);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+
+        if (atlasMipMaps.size() == 1) {
+            glGenerateMipmap(GL_TEXTURE_2D);
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, atlasMipMaps.size() - 1);
+        }
+
         for (int i = 0; i < atlasMipMaps.size(); i++) {
             final GenericImageData data = atlasMipMaps.get(i).getData();
             final PixelFormat format = data.format();
@@ -69,19 +87,6 @@ public class TextureAtlas2D extends Texture2D {
 
             glTexImage2D(GL_TEXTURE_2D, i, format.glType,
                     data.width(), data.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, data.bytes());
-        }
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        if (atlasMipMaps.size() == 1) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, atlasMipMaps.size() - 1);
         }
 
         return new TextureAtlas2D(handle, width, height, sourceAtlas.getPositions());
