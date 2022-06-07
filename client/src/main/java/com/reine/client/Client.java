@@ -34,7 +34,8 @@ public class Client extends CrownGame {
             "GL_ARB_bindless_texture",
     };
 
-    ShaderProgram program;
+    ShaderProgram chunkShader;
+    ShaderProgram simpleShader;
 
     Mouse mouse;
     Keyboard keyboard;
@@ -85,12 +86,19 @@ public class Client extends CrownGame {
         textureManager.rebuild();
         chunkRenderer = new ChunkRenderer(renderer, textureManager);
 
-        try (Shader vertex = new Shader(getClass().getResource("/shader/vertex.vsh"), true,
+        try (Shader vertex = new Shader(getClass().getResource("/shader/chunk.vsh"), true,
                 "#version 450 core");
-             Shader fragment = new Shader(getClass().getResource("/shader/fragment.fsh"), false,
+             Shader fragment = new Shader(getClass().getResource("/shader/chunk.fsh"), false,
                      "#version 450 core",
                      "#define TEXTURES_COUNT " + textureManager.texturesCount())) {
-            program = new ShaderProgram(vertex, fragment);
+            chunkShader = new ShaderProgram(vertex, fragment);
+        }
+
+        try (Shader vertex = new Shader(getClass().getResource("/shader/simple.vsh"), true,
+                "#version 450 core");
+             Shader fragment = new Shader(getClass().getResource("/shader/simple.fsh"), false,
+                     "#version 450 core")) {
+            simpleShader = new ShaderProgram(vertex, fragment);
         }
 
 
@@ -115,20 +123,6 @@ public class Client extends CrownGame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-//        for (int x = 0; x < 10f * IChunk.CHUNK_WIDTH; x++) {
-//            for (int y = 0; y < 1f * IChunk.CHUNK_HEIGHT; y++) {
-//                for (int z = 0; z < 60f * IChunk.CHUNK_LENGTH; z++) {
-//                    chunkGrid.setBlockId(x, y, z,
-//                            Math.random() > 0.9
-//                                    ? Block.GLASS.getId()
-//                                    : Block.BOOKSHELF.getId()
-//                    );
-////                    chunkGrid.setBlockId(x, y, z, Block.GLASS.getId());
-////                    chunkGrid.setBlockId(x, y, z, (int) (Math.random() * Block.values().size()));
-//                }
-//            }
-//        }
 
         chunkGrid.loadedChunks().forEach(c -> chunkRenderer.setChunk(chunkGrid, c));
         loop();
@@ -217,7 +211,6 @@ public class Client extends CrownGame {
         }
 
         camera.rotate(rotX, rotY, rotZ);
-//        System.out.println("Cam pos: " + camera.getPosition() + ", Cam angle: " + camera.getRotation());
     }
 
     public void onCursorMove(@NotNull Window window, double x, double y) {
@@ -245,12 +238,12 @@ public class Client extends CrownGame {
         glClearColor(cosTime, cosTime, cosTime, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        program.use();
-        program.setUniformMatrix4fv("view", false, camera.toViewMatrix());
-        program.setUniformMatrix4fv("projection", false, camera.toProjectionMatrix());
+        chunkShader.use();
+        chunkShader.setUniformMatrix4fv("view", false, camera.toViewMatrix());
+        chunkShader.setUniformMatrix4fv("projection", false, camera.toProjectionMatrix());
 
         Collection<IChunk> chunks = chunkGrid.loadedChunks();
-        chunkRenderer.render(program, chunks);
+        chunkRenderer.render(chunkShader, chunks);
 
         window.update();
     }
