@@ -9,7 +9,6 @@ import com.crown.input.keyboard.Keyboard;
 import com.crown.input.mouse.Mouse;
 import com.crown.output.window.Window;
 import com.crown.util.UpdateCounter;
-import com.reine.block.Block;
 import com.reine.client.render.Renderer;
 import com.reine.client.render.chunk.ChunkRenderer;
 import com.reine.client.save.minecaft.anvil.AnvilLoader;
@@ -61,7 +60,7 @@ public class Client extends CrownGame {
         window.setFocusCallback(this::onFocus);
 
         camera.setZFar(1000);
-        camera.updateProjection(400, 300);
+        camera.setAspect(400, 300);
         camera.moveY(-100);
 
         GraphicsLibrary.enableMultiSampling();
@@ -235,6 +234,8 @@ public class Client extends CrownGame {
     }
 
     private void render() {
+        camera.update();
+
         glClearColor(cosTime, cosTime, cosTime, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -243,7 +244,7 @@ public class Client extends CrownGame {
         chunkShader.setUniformMatrix4fv("projection", false, camera.toProjectionMatrix());
 
         Collection<IChunk> chunks = chunkGrid.loadedChunks();
-        chunkRenderer.render(chunkShader, chunks);
+        chunkRenderer.render(camera, chunkShader, chunks);
 
         window.update();
     }

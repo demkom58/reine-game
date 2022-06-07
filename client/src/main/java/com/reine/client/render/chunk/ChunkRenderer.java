@@ -1,11 +1,11 @@
 package com.reine.client.render.chunk;
 
+import com.crown.graphic.camera.Camera;
 import com.crown.graphic.shader.ShaderProgram;
 import com.crown.graphic.texture.TextureManager;
 import com.crown.graphic.unit.Mesh;
 import com.reine.block.Block;
 import com.reine.client.render.Renderer;
-import com.reine.util.Axis;
 import com.reine.util.WorldSide;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.ChunkPosition;
@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
@@ -24,8 +23,8 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class ChunkRenderer {
-    private static final int TRIANGLE_VERTICES = 3;
-    private static final int QUAD_TRIANGLES = 2;
+    public static final int TRIANGLE_VERTICES = 3;
+    public static final int QUAD_TRIANGLES = 2;
 
 
     private final Renderer renderer;
@@ -79,11 +78,17 @@ public class ChunkRenderer {
         }
     }
 
-    public void render(ShaderProgram program, Collection<IChunk> chunks) {
+    public void render(Camera camera, ShaderProgram program, Collection<IChunk> chunks) {
         final List<RenderChunk> toRender = new ArrayList<>(chunks.size());
         for (IChunk chunk : chunks) {
-            toRender.add(renderChunks.get(ChunkPosition.fromChunk(chunk)));
+//            int x = chunk.getX() * 16;
+//            int y = chunk.getY() * 16;
+//            int z = chunk.getZ() * 16;
+//            if (camera.isBoxInFrustum(x, y, z, 16, 16, 16)) {
+                toRender.add(renderChunks.get(ChunkPosition.fromChunk(chunk)));
+//            }
         }
+//        System.out.println("Chunks to render: " + toRender.size());
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
@@ -153,62 +158,7 @@ public class ChunkRenderer {
             final Vector3f end = quad.end();
 
             final WorldSide side = quad.side();
-            switch (side) {
-                case WEST -> posB.put(new float[]{
-                        str.x, str.y, str.z,
-                        str.x, str.y, end.z,
-                        str.x, end.y, str.z,
-
-                        str.x, end.y, str.z,
-                        str.x, str.y, end.z,
-                        str.x, end.y, end.z,
-                });
-                case EAST -> posB.put(new float[]{
-                        str.x, str.y, str.z,
-                        str.x, end.y, str.z,
-                        str.x, str.y, end.z,
-
-                        str.x, str.y, end.z,
-                        str.x, end.y, str.z,
-                        str.x, end.y, end.z,
-                });
-                case DOWN -> posB.put(new float[]{
-                        str.x, str.y, str.z,
-                        end.x, str.y, str.z,
-                        str.x, str.y, end.z,
-
-                        str.x, str.y, end.z,
-                        end.x, str.y, str.z,
-                        end.x, str.y, end.z,
-                });
-                case UP -> posB.put(new float[]{
-                        str.x, str.y, str.z,
-                        str.x, str.y, end.z,
-                        end.x, str.y, str.z,
-
-                        end.x, str.y, str.z,
-                        str.x, str.y, end.z,
-                        end.x, str.y, end.z,
-                });
-                case NORTH -> posB.put(new float[]{
-                        end.x, str.y, str.z,
-                        str.x, str.y, str.z,
-                        str.x, end.y, str.z,
-
-                        end.x, str.y, str.z,
-                        str.x, end.y, str.z,
-                        end.x, end.y, str.z,
-                });
-                case SOUTH -> posB.put(new float[]{
-                        str.x, str.y, str.z,
-                        end.x, str.y, str.z,
-                        str.x, end.y, str.z,
-
-                        str.x, end.y, str.z,
-                        end.x, str.y, str.z,
-                        end.x, end.y, str.z,
-                });
-            }
+            fillSideVertices(posB, side, str, end);
 
             int texId = textureManager.getId(Block.byId(quad.blockId()).getTexture(side));
             Vector3f normal = side.vec();
@@ -222,6 +172,65 @@ public class ChunkRenderer {
                 .positions(0, posB.flip(), 3, false)
                 .attribute(1, faceB.flip(), 4)
                 .build();
+    }
+
+    private void fillSideVertices(FloatBuffer posB, WorldSide side, Vector3f str, Vector3f end) {
+        switch (side) {
+            case WEST -> posB.put(new float[]{
+                    str.x, str.y, str.z,
+                    str.x, str.y, end.z,
+                    str.x, end.y, str.z,
+
+                    str.x, end.y, str.z,
+                    str.x, str.y, end.z,
+                    str.x, end.y, end.z,
+            });
+            case EAST -> posB.put(new float[]{
+                    str.x, str.y, str.z,
+                    str.x, end.y, str.z,
+                    str.x, str.y, end.z,
+
+                    str.x, str.y, end.z,
+                    str.x, end.y, str.z,
+                    str.x, end.y, end.z,
+            });
+            case DOWN -> posB.put(new float[]{
+                    str.x, str.y, str.z,
+                    end.x, str.y, str.z,
+                    str.x, str.y, end.z,
+
+                    str.x, str.y, end.z,
+                    end.x, str.y, str.z,
+                    end.x, str.y, end.z,
+            });
+            case UP -> posB.put(new float[]{
+                    str.x, str.y, str.z,
+                    str.x, str.y, end.z,
+                    end.x, str.y, str.z,
+
+                    end.x, str.y, str.z,
+                    str.x, str.y, end.z,
+                    end.x, str.y, end.z,
+            });
+            case NORTH -> posB.put(new float[]{
+                    end.x, str.y, str.z,
+                    str.x, str.y, str.z,
+                    str.x, end.y, str.z,
+
+                    end.x, str.y, str.z,
+                    str.x, end.y, str.z,
+                    end.x, end.y, str.z,
+            });
+            case SOUTH -> posB.put(new float[]{
+                    str.x, str.y, str.z,
+                    end.x, str.y, str.z,
+                    str.x, end.y, str.z,
+
+                    str.x, end.y, str.z,
+                    end.x, str.y, str.z,
+                    end.x, end.y, str.z,
+            });
+        }
     }
 
 }
