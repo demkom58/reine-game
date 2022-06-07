@@ -14,6 +14,10 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, int[] usedVb
         glBindVertexArray(vaoId);
     }
 
+    public void unbind() {
+        glBindVertexArray(0);
+    }
+
     public void draw() {
         if (eboId == -1) {
             glDrawArrays(mode, 0, vertexCount);
