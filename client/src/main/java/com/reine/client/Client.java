@@ -2,9 +2,11 @@ package com.reine.client;
 
 import com.crown.graphic.CrownGame;
 import com.crown.graphic.GraphicsLibrary;
+import com.crown.graphic.camera.Camera;
 import com.crown.graphic.shader.Shader;
 import com.crown.graphic.shader.ShaderProgram;
 import com.crown.graphic.texture.TextureManager;
+import com.crown.graphic.util.Draw;
 import com.crown.input.keyboard.Keyboard;
 import com.crown.input.mouse.Mouse;
 import com.crown.output.window.Window;
@@ -16,6 +18,7 @@ import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.IChunk;
 import org.jetbrains.annotations.NotNull;
 import org.jglrxavpok.hephaistos.mca.AnvilException;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -245,6 +248,21 @@ public class Client extends CrownGame {
 
         Collection<IChunk> chunks = chunkGrid.loadedChunks();
         chunkRenderer.render(camera, chunkShader, chunks);
+
+        new Matrix4f()
+                .rotation(camera.getRotation())
+                .translateLocal(camera.getPosition())
+                .get(renderer.modelBuffer);
+
+        simpleShader.use();
+        simpleShader.setUniformMatrix4fv("model", false, renderer.modelBuffer);
+        simpleShader.setUniformMatrix4fv("view", false, camera.toViewMatrix());
+        simpleShader.setUniformMatrix4fv("projection", false, camera.toProjectionMatrix());
+
+        Vector3f color = new Vector3f(1.0f, 0.0f, 0.0f);
+        for (Camera.Plane plane : camera.getPlanes()) {
+            Draw.line(new Vector3f(plane.normal).mul(1000), color);
+        }
 
         window.update();
     }

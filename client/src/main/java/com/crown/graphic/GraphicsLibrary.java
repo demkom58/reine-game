@@ -16,8 +16,8 @@ import static org.lwjgl.opengl.GL13.GL_MULTISAMPLE;
 public final class GraphicsLibrary {
     private static final GLFWErrorCallback ERROR_CALLBACK = GLFWErrorCallback.create(GraphicsLibrary::printError);
 
-    public static final int OPENGL_TARGET_VERSION_MAJOR = 3;
-    public static final int OPENGL_TARGET_VERSION_MINOR = 3;
+    public static final int OPENGL_TARGET_VERSION_MAJOR = 4;
+    public static final int OPENGL_TARGET_VERSION_MINOR = 5;
 
     public static void init() {
         setLogOnError();

@@ -81,12 +81,12 @@ public class ChunkRenderer {
     public void render(Camera camera, ShaderProgram program, Collection<IChunk> chunks) {
         final List<RenderChunk> toRender = new ArrayList<>(chunks.size());
         for (IChunk chunk : chunks) {
-//            int x = chunk.getX() * 16;
-//            int y = chunk.getY() * 16;
-//            int z = chunk.getZ() * 16;
-//            if (camera.isBoxInFrustum(x, y, z, 16, 16, 16)) {
+            int x = chunk.getX() * 16;
+            int y = chunk.getY() * 16;
+            int z = chunk.getZ() * 16;
+            if (camera.isBoxInFrustum(x, y, z, 16, 16, 16)) {
                 toRender.add(renderChunks.get(ChunkPosition.fromChunk(chunk)));
-//            }
+            }
         }
 //        System.out.println("Chunks to render: " + toRender.size());
 

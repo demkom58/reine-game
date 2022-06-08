@@ -11,9 +11,8 @@ import static java.lang.Math.toRadians;
 import static org.lwjgl.opengl.GL11.glViewport;
 
 public class Camera {
-    protected static final Matrix4f _ONE_MAIN_MATRIX = new Matrix4f().identity();
-
-    protected final Matrix4f _viewMatrix = new Matrix4f().identity();
+    protected final Matrix4f _projectionMatrix = new Matrix4f();
+    protected final Matrix4f _viewMatrix = new Matrix4f();
     protected final Vector3f _moveVec = new Vector3f();
 
     protected final float[] projectionBuffer = new float[16];
@@ -45,15 +44,16 @@ public class Camera {
     }
 
     public void update() {
-        _ONE_MAIN_MATRIX
-                .rotate(rotation, _viewMatrix)
-                .translate(position, _viewMatrix)
+        _viewMatrix
+                .rotation(rotation)
+                .translate(position)
                 .get(viewBuffer);
 
-        Matrix4f projection = new Matrix4f().perspective(fov, aspect, zNear, zFar);
-        projection.get(projectionBuffer);
+        _projectionMatrix
+                .setPerspective(fov, aspect, zNear, zFar)
+                .get(projectionBuffer);
 
-        createPlanes(projection, _viewMatrix);
+        createPlanes(_projectionMatrix, _viewMatrix);
     }
 
     public float[] toViewMatrix() {
@@ -205,7 +205,6 @@ public class Camera {
             );
 
             if (plane.distance(point) < 0) {
-//                System.out.println("out in " + i + " (" + plane.distance(point) + ") for xyz(" + x + ";" + y + ";" + z + ")");
                 return false;
             }
         }
