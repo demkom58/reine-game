@@ -153,28 +153,28 @@ public class Camera {
         final Matrix4f m = projection.mul(viewMatrix);
 
         // left
-        planes[0].normal.set(m.m30() + m.m00(), m.m31() + m.m01(), m.m32() + m.m02());
-        planes[0].distance = m.m33() + m.m03();
+        planes[0].normal.set(m.m03() + m.m00(), m.m13() + m.m10(), m.m23() + m.m20());
+        planes[0].distance = m.m33() + m.m30();
 
         // right
-        planes[1].normal.set(m.m30() - m.m00(), m.m31() - m.m01(), m.m32() - m.m02());
-        planes[1].distance = m.m33() - m.m03();
+        planes[1].normal.set(m.m03() - m.m00(), m.m13() - m.m10(), m.m23() - m.m20());
+        planes[1].distance = m.m33() - m.m30();
 
         // bottom
-        planes[2].normal.set(m.m30() + m.m10(), m.m31() + m.m11(), m.m32() + m.m12());
-        planes[2].distance = m.m33() + m.m13();
+        planes[2].normal.set(m.m03() + m.m01(), m.m13() + m.m11(), m.m23() + m.m21());
+        planes[2].distance = m.m33() + m.m31();
 
         // top
-        planes[3].normal.set(m.m30() - m.m10(), m.m31() - m.m11(), m.m32() - m.m12());
-        planes[3].distance = m.m33() - m.m13();
+        planes[3].normal.set(m.m03() - m.m01(), m.m13() - m.m11(), m.m23() - m.m21());
+        planes[3].distance = m.m33() - m.m31();
 
         // near
-        planes[4].normal.set(m.m30() + m.m20(), m.m31() + m.m21(), m.m32() + m.m22());
-        planes[4].distance = m.m33() + m.m23();
+        planes[4].normal.set(m.m03() + m.m02(), m.m13() + m.m12(), m.m23() + m.m22());
+        planes[4].distance = m.m33() + m.m32();
 
         // far
-        planes[5].normal.set(m.m30() - m.m20(), m.m31() - m.m21(), m.m32() - m.m22());
-        planes[5].distance = m.m33() - m.m23();
+        planes[5].normal.set(m.m03() - m.m02(), m.m13() - m.m12(), m.m23() - m.m22());
+        planes[5].distance = m.m33() - m.m32();
 
         // normalize
         for (int i = 0; i < 6; i++) {
