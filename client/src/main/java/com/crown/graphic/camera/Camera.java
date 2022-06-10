@@ -8,7 +8,7 @@ import org.joml.Vector3f;
 import java.text.NumberFormat;
 
 import static java.lang.Math.toRadians;
-import static org.lwjgl.opengl.GL11.glViewport;
+import static org.lwjgl.opengl.GL11.*;
 
 public class Camera {
     protected final Matrix4f _projectionMatrix = new Matrix4f();
@@ -28,7 +28,7 @@ public class Camera {
     private final Plane[] planes;
 
     public Camera() {
-        this(new Vector3f(0, 0, -3), new Quaternionf(), 0.001f, 100.0f);
+        this(new Vector3f(0, 0, -3), new Quaternionf(), 0.1f, 100.0f);
     }
 
     public Camera(Vector3f position, Quaternionf rotation, float zNear, float zFar) {
