@@ -1,9 +1,5 @@
 apply plugin: 'application'
 
-repositories {
-    mavenCentral()
-}
-
 application.mainClassName = "com.reine.client.ClientStarter"
 
 project.ext.lwjglVersion = "3.3.1"
