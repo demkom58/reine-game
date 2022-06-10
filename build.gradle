@@ -2,11 +2,13 @@ plugins {
     id 'java'
     id 'idea'
     id 'application'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'java'
+    apply plugin: 'com.github.johnrengelman.shadow'
 
     group = "com.reine"
     version = "1.0"
