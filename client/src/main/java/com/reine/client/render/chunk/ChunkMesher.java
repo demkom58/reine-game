@@ -29,7 +29,9 @@ public class ChunkMesher {
             try (MemoryStack stack = MemoryStack.stackPush()) {
                 List<ChunkQuad> quads = greedyQuads(stack, chunk, faceChunk.getBuffer(pass));
                 Mesh mesh = meshCompiler.compile(quads);
-                meshes.put(pass, mesh);
+                if (mesh != null) {
+                    meshes.put(pass, mesh);
+                }
             }
         }
 

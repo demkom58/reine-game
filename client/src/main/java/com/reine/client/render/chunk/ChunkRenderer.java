@@ -149,6 +149,9 @@ public class ChunkRenderer {
 
     public Mesh compileMesh(List<ChunkQuad> quads) {
         final int quadsCount = quads.size();
+        if (quadsCount == 0) {
+            return null;
+        }
 
         final IntBuffer faceB = MemoryUtil.memCallocInt(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 4); // vec3(normal x, normal y, normal z, texId)
         final FloatBuffer posB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
