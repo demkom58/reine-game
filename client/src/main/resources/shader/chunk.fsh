@@ -1,7 +1,7 @@
 #extension GL_ARB_gpu_shader_int64      : require
 #extension GL_ARB_bindless_texture      : require
 
-layout(binding = 0) uniform Textures {
+layout(binding = 3) uniform Textures {
     uint64_t tex_handles[TEXTURES_COUNT];
 };
 

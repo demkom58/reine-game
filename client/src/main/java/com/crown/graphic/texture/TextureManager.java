@@ -63,7 +63,7 @@ public class TextureManager {
             uniBufName = glGenBuffers();
             glBindBuffer(GL_UNIFORM_BUFFER, uniBufName);
             glBufferData(GL_UNIFORM_BUFFER, (long) handles.remaining() * Long.BYTES, GL_STATIC_DRAW);
-            glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniBufName, 0, (long) handles.remaining() * Long.BYTES);
+            glBindBufferRange(GL_UNIFORM_BUFFER, 3, uniBufName, 0, (long) handles.remaining() * Long.BYTES);
             glBufferSubData(GL_UNIFORM_BUFFER, 0, handles);
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }

@@ -116,72 +116,141 @@ public class ShaderProgram implements Destroyable {
         glUniform1f(glGetUniformLocation(handle, name), value1);
     }
 
+    public void setUniform1f(int index, float value1) {
+        glUniform1f(index, value1);
+    }
+
     public void setUniform1fv(String name, FloatBuffer values) {
         glUniform1fv(glGetUniformLocation(handle, name), values);
+    }
+
+    public void setUniform1fv(int index, FloatBuffer values) {
+        glUniform1fv(index, values);
     }
 
     public void setUniform1fv(String name, float[] values) {
         glUniform1fv(glGetUniformLocation(handle, name), values);
     }
 
+    public void setUniform1fv(int index, float[] values) {
+        glUniform1fv(index, values);
+    }
+
     public void setUniform2f(String name, float value1, float value2) {
         glUniform2f(glGetUniformLocation(handle, name), value1, value2);
+    }
+    public void setUniform2f(int index, float value1, float value2) {
+        glUniform2f(index, value1, value2);
     }
 
     public void setUniform2fv(String name, FloatBuffer values) {
         glUniform2fv(glGetUniformLocation(handle, name), values);
     }
 
+    public void setUniform2fv(int index, FloatBuffer values) {
+        glUniform2fv(index, values);
+    }
+
     public void setUniform2fv(String name, float[] values) {
         glUniform2fv(glGetUniformLocation(handle, name), values);
     }
 
+
+    public void setUniform2fv(int index, float[] values) {
+        glUniform2fv(index, values);
+    }
+
     public void setUniform3f(String name, float value1, float value2, float value3) {
         glUniform3f(glGetUniformLocation(handle, name), value1, value2, value3);
+    }
+    public void setUniform3f(int index, float value1, float value2, float value3) {
+        glUniform3f(index, value1, value2, value3);
     }
 
     public void setUniform3fv(String name, FloatBuffer values) {
         glUniform3fv(glGetUniformLocation(handle, name), values);
     }
 
+    public void setUniform3fv(int index, FloatBuffer values) {
+        glUniform3fv(index, values);
+    }
+
     public void setUniform3fv(String name, float[] values) {
         glUniform3fv(glGetUniformLocation(handle, name), values);
     }
 
+    public void setUniform3fv(int index, float[] values) {
+        glUniform3fv(index, values);
+    }
+
     public void setUniform4f(String name, float value1, float value2, float value3, float value4) {
         glUniform4f(glGetUniformLocation(handle, name), value1, value2, value3, value4);
+    }
+    public void setUniform4f(int index, float value1, float value2, float value3, float value4) {
+        glUniform4f(index, value1, value2, value3, value4);
     }
 
     public void setUniform4fv(String name, FloatBuffer values) {
         glUniform4fv(glGetUniformLocation(handle, name), values);
     }
 
+    public void setUniform4fv(int index, FloatBuffer values) {
+        glUniform4fv(index, values);
+    }
+
     public void setUniform4fv(String name, float[] values) {
         glUniform4fv(glGetUniformLocation(handle, name), values);
     }
 
+    public void setUniform4fv(int index, float[] values) {
+        glUniform4fv(index, values);
+    }
+
     public void setUniformMatrix2fv(String name, boolean transpose, FloatBuffer values) {
         glUniformMatrix2fv(glGetUniformLocation(handle, name), transpose, values);
+    }
+    public void setUniformMatrix2fv(int index, boolean transpose, FloatBuffer values) {
+        glUniformMatrix2fv(index, transpose, values);
     }
 
     public void setUniformMatrix2fv(String name, boolean transpose, float[] values) {
         glUniformMatrix2fv(glGetUniformLocation(handle, name), transpose, values);
     }
 
+    public void setUniformMatrix2fv(int index, boolean transpose, float[] values) {
+        glUniformMatrix2fv(index, transpose, values);
+    }
+
     public void setUniformMatrix3fv(String name, boolean transpose, FloatBuffer values) {
         glUniformMatrix3fv(glGetUniformLocation(handle, name), transpose, values);
+    }
+
+    public void setUniformMatrix3fv(int index, boolean transpose, FloatBuffer values) {
+        glUniformMatrix3fv(index, transpose, values);
     }
 
     public void setUniformMatrix3fv(String name, boolean transpose, float[] values) {
         glUniformMatrix3fv(glGetUniformLocation(handle, name), transpose, values);
     }
 
+    public void setUniformMatrix3fv(int index, boolean transpose, float[] values) {
+        glUniformMatrix3fv(index, transpose, values);
+    }
+
     public void setUniformMatrix4fv(String name, boolean transpose, FloatBuffer values) {
         glUniformMatrix4fv(glGetUniformLocation(handle, name), transpose, values);
     }
 
+    public void setUniformMatrix4fv(int index, boolean transpose, FloatBuffer values) {
+        glUniformMatrix4fv(index, transpose, values);
+    }
+
     public void setUniformMatrix4fv(String name, boolean transpose, float[] values) {
         glUniformMatrix4fv(glGetUniformLocation(handle, name), transpose, values);
+    }
+
+    public void setUniformMatrix4fv(int index, boolean transpose, float[] values) {
+        glUniformMatrix4fv(index, transpose, values);
     }
 
     public void setUniformBlock(String name, int uniformBlockBinding) {

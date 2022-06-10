@@ -97,9 +97,12 @@ public class ChunkRenderer {
             renderSolid(program, chunk);
         }
 
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
         for (RenderChunk chunk : toRender) {
             renderTransparent(program, chunk);
         }
+        glDisable(GL_BLEND);
 
         glDisable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
@@ -127,13 +130,8 @@ public class ChunkRenderer {
 
         setChunkPosition(program, chunk);
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_BLEND);
-
         transparent.bind();
         transparent.draw();
-
-        glDisable(GL_BLEND);
     }
 
     private void setChunkPosition(ShaderProgram program, RenderChunk chunk) {
@@ -144,7 +142,7 @@ public class ChunkRenderer {
                         chunk.z() * CHUNK_LENGTH,
                         renderer.modelMatrix
                 ).get(renderer.modelBuffer);
-        program.setUniformMatrix4fv("model", false, renderer.modelBuffer);
+        program.setUniformMatrix4fv(0, false, renderer.modelBuffer);
     }
 
     public Mesh compileMesh(List<ChunkQuad> quads) {
