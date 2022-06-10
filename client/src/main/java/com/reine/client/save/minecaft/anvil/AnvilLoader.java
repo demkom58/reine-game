@@ -61,11 +61,13 @@ public class AnvilLoader implements AutoCloseable {
     }};
 
     private final File regionDir;
+    private final Block invalidBlock;
     private final Map<String, RegionFile> loadedRegions = new HashMap<>();
     private final Object2IntMap<String> invalidStatistics = new Object2IntOpenHashMap<>();
 
-    public AnvilLoader(File saveDir) {
+    public AnvilLoader(File saveDir, Block invalidBlock) {
         this.regionDir = new File(saveDir, "region");
+        this.invalidBlock = invalidBlock;
     }
 
     public IChunk loadChunk(int x, int y, int z) throws AnvilException, IOException {
@@ -106,7 +108,7 @@ public class AnvilLoader implements AutoCloseable {
                     empty = false;
                     Integer blockId = BLOCK_MAPPING.get(name);
                     if (blockId == null) {
-                        blockId = Block.INVALID.getId();
+                        blockId = invalidBlock.getId();
                         invalidStatistics.computeInt(name, (k, v) -> v == null ? 1 : v + 1);
                     }
 
