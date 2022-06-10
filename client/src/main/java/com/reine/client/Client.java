@@ -57,14 +57,16 @@ public class Client extends CrownGame {
         mouse = new Mouse(window);
         keyboard = new Keyboard(window);
 
+        GraphicsLibrary.enableMultiSampling();
+        GraphicsLibrary.reversZDepth();
+
         mouse.setPositionCallback(this::onCursorMove);
         window.setFocusCallback(this::onFocus);
 
-        camera.setZFar(1000);
+        camera.setZFar(1500);
         camera.setAspect(400, 300);
         camera.moveY(-100);
 
-        GraphicsLibrary.enableMultiSampling();
         window.setSampling(GLFW_SAMPLES, 4);
     }
 

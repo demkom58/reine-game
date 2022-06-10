@@ -1,6 +1,8 @@
 package com.crown.graphic.camera;
 
+import com.crown.graphic.GraphicsLibrary;
 import com.crown.output.window.Window;
+import org.joml.CMatrix4f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -11,7 +13,7 @@ import static java.lang.Math.toRadians;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Camera {
-    protected final Matrix4f _projectionMatrix = new Matrix4f();
+    protected final CMatrix4f _projectionMatrix = new CMatrix4f();
     protected final Matrix4f _viewMatrix = new Matrix4f();
     protected final Vector3f _moveVec = new Vector3f();
 
@@ -49,9 +51,10 @@ public class Camera {
                 .translate(position)
                 .get(viewBuffer);
 
-        _projectionMatrix
-                .setPerspective(fov, aspect, zNear, zFar)
-                .get(projectionBuffer);
+        (GraphicsLibrary.isReversZDepth()
+                ? _projectionMatrix.setReversedZPerspective(fov, aspect, zNear, zFar)
+                : _projectionMatrix.setPerspective(fov, aspect, zNear, zFar)
+        ).get(projectionBuffer);
 
         createPlanes(_projectionMatrix, _viewMatrix);
     }

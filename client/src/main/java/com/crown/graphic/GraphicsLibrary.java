@@ -6,14 +6,13 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.system.MemoryUtil;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL13.GL_MULTISAMPLE;
+import static org.lwjgl.opengl.GL45.*;
 
 public final class GraphicsLibrary {
+    private static boolean reversZDepth = false;
     private static final GLFWErrorCallback ERROR_CALLBACK = GLFWErrorCallback.create(GraphicsLibrary::printError);
 
     public static final int OPENGL_TARGET_VERSION_MAJOR = 4;
@@ -60,6 +59,17 @@ public final class GraphicsLibrary {
 
     public static void enableMultiSampling() {
         glEnable(GL_MULTISAMPLE);
+    }
+
+    public static void reversZDepth() {
+        glDepthFunc(GL_GEQUAL);
+        glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+        glClearDepth(0.0);
+        reversZDepth = true;
+    }
+
+    public static boolean isReversZDepth() {
+        return reversZDepth;
     }
 
     public static void setThrowOnError() {
