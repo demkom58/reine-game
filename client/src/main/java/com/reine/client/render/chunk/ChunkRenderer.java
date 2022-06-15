@@ -78,13 +78,22 @@ public class ChunkRenderer {
         }
     }
 
+    public List<RenderChunk> getRenderChunks(Collection<IChunk> chunks) {
+        final List<RenderChunk> toRender = new ArrayList<>(chunks.size());
+        for (IChunk chunk : chunks) {
+            toRender.add(renderChunks.get(ChunkPosition.fromChunk(chunk)));
+        }
+        return toRender;
+    }
+
     public void render(Camera camera, ShaderProgram program, Collection<IChunk> chunks) {
         final List<RenderChunk> toRender = new ArrayList<>(chunks.size());
         for (IChunk chunk : chunks) {
-            int x = chunk.getX() * 16;
-            int y = chunk.getY() * 16;
-            int z = chunk.getZ() * 16;
-            if (camera.isBoxInFrustum(x, y, z, 16, 16, 16)) {
+            int x = chunk.getX() * CHUNK_WIDTH;
+            int y = chunk.getY() * CHUNK_HEIGHT;
+            int z = chunk.getZ() * CHUNK_LENGTH;
+
+            if (camera.isBoxInFrustum(x, y, z, CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_LENGTH)) {
                 toRender.add(renderChunks.get(ChunkPosition.fromChunk(chunk)));
             }
         }

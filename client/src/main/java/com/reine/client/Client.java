@@ -12,6 +12,7 @@ import com.crown.util.UpdateCounter;
 import com.reine.block.Block;
 import com.reine.client.render.Renderer;
 import com.reine.client.render.chunk.ChunkRenderer;
+import com.reine.client.render.chunk.RenderChunk;
 import com.reine.client.save.minecaft.anvil.AnvilLoader;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.IChunk;
@@ -23,6 +24,7 @@ import org.joml.Vector3f;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -106,9 +108,9 @@ public class Client extends CrownGame {
 
         File save = new File("saves/Drehmal v2.1.1 PRIMORDIAL");
         try (AnvilLoader anvilLoader = new AnvilLoader(save, Block.AIR)) {
-            for (int x = 0; x < 25; x++) {
-                for (int y = 0; y < 16; y++) {
-                    for (int z = 0; z < 25; z++) {
+            for (int x = -10; x < 10; x++) {
+                for (int y = 0; y < 8; y++) {
+                    for (int z = -10; z < 10; z++) {
                         try {
                             IChunk iChunk = anvilLoader.loadChunk(x, y, z);
                             chunkGrid.setChunk(x, y, z, iChunk);
@@ -126,7 +128,15 @@ public class Client extends CrownGame {
             e.printStackTrace();
         }
 
+        List<IChunk> notEmpty = chunkGrid.loadedChunks().stream().filter(c -> !c.isEmpty()).toList();
+        System.out.println("Loaded not empty chunks: " + notEmpty.size());
+
         chunkGrid.loadedChunks().forEach(c -> chunkRenderer.setChunk(chunkGrid, c));
+
+        List<RenderChunk> renderChunks = chunkRenderer.getRenderChunks(notEmpty);
+        int drawCalls = renderChunks.stream().mapToInt(c -> c.passes().size()).sum();
+        System.out.println("Draw calls: " + drawCalls);
+
         loop();
     }
 
@@ -155,10 +165,15 @@ public class Client extends CrownGame {
     private final Vector3f velocity = new Vector3f();
 
     private void handleInput() {
-        final float camSpeed = 0.5f;
+
         float rotZ = 0.0f;
         float rotY = 0.0f;
         float rotX = 0.0f;
+
+        float camSpeed = 0.5f;
+        if (keyboard.isKeyDown(GLFW_KEY_LEFT_CONTROL)) {
+            camSpeed = 10.0f;
+        }
 
         if (keyboard.isKeyDown(GLFW_KEY_W)) {
             front.mul(-camSpeed, velocity);
@@ -243,8 +258,8 @@ public class Client extends CrownGame {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         chunkShader.use();
-        chunkShader.setUniformMatrix4fv("view", false, camera.toViewMatrix());
-        chunkShader.setUniformMatrix4fv("projection", false, camera.toProjectionMatrix());
+        chunkShader.setUniformMatrix4fv(1, false, camera.toViewMatrix());
+        chunkShader.setUniformMatrix4fv(2, false, camera.toProjectionMatrix());
 
         Collection<IChunk> chunks = chunkGrid.loadedChunks();
         chunkRenderer.render(camera, chunkShader, chunks);

@@ -17,6 +17,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AnvilLoader implements AutoCloseable {
+    public static final int MC_CHUNK_AXIS = 16;
+    public static final int WIDTH_BITS_DIF = Long.bitCount(IChunk.CHUNK_WIDTH - 1) - Long.bitCount(MC_CHUNK_AXIS - 1);
+    public static final int HEIGHT_BITS_DIF = Long.bitCount(IChunk.CHUNK_HEIGHT - 1) - Long.bitCount(MC_CHUNK_AXIS - 1);
+    public static final int LENGTH_BITS_DIF = Long.bitCount(IChunk.CHUNK_LENGTH - 1) - Long.bitCount(MC_CHUNK_AXIS - 1);
+
     private static final Map<String, Integer> BLOCK_MAPPING = new HashMap<>() {{
         put("minecraft:bedrock", Block.BEDROCK.getId());
         put("minecraft:dirt", Block.DIRT.getId());
@@ -70,7 +75,42 @@ public class AnvilLoader implements AutoCloseable {
         this.invalidBlock = invalidBlock;
     }
 
-    public IChunk loadChunk(int x, int y, int z) throws AnvilException, IOException {
+    public IChunk loadChunk(int rX, int rY, int rZ) throws AnvilException, IOException {
+        int x = rX << WIDTH_BITS_DIF;
+        int y = rY << HEIGHT_BITS_DIF;
+        int z = rZ << LENGTH_BITS_DIF;
+
+        final Chunk chunk = new Chunk(rX, rY, rZ);
+
+        boolean hasCubes = false;
+        for (int wX = 0; wX < IChunk.CHUNK_WIDTH / MC_CHUNK_AXIS; wX++) {
+            for (int wY = 0; wY < IChunk.CHUNK_HEIGHT / MC_CHUNK_AXIS; wY++) {
+                for (int wZ = 0; wZ < IChunk.CHUNK_LENGTH / MC_CHUNK_AXIS; wZ++) {
+
+                    int mcX = x + wX,
+                            mcY = y + wY,
+                            mcZ = z + wZ;
+
+                    hasCubes |= readChunk(
+                            chunk,
+                            wX * MC_CHUNK_AXIS,
+                            wY * MC_CHUNK_AXIS,
+                            wZ * MC_CHUNK_AXIS,
+                            mcX, mcY, mcZ
+                    );
+                }
+            }
+        }
+
+        if (!hasCubes) {
+            return new EmptyChunk(rX, rY, rZ);
+        }
+
+        return chunk;
+    }
+
+
+    public boolean readChunk(Chunk chunk, int startX, int startY, int startZ, int x, int y, int z) throws AnvilException, IOException {
         int regionX = x >> 5;
         int regionZ = z >> 5;
 
@@ -85,43 +125,33 @@ public class AnvilLoader implements AutoCloseable {
             }
         });
 
-        ChunkColumn column = region.getChunk(x, z);
-        if (column == null) {
-            return new EmptyChunk(x, y, z);
-        }
-
-        return readChunk(column, x, y, z);
+        return readChunk(chunk, region.getChunk(x, z), startX, startY, startZ, y);
     }
 
-    private IChunk readChunk(ChunkColumn column, int x, int y, int z) {
-        Chunk chunk = new Chunk(x, y, z);
-        boolean empty = true;
+    private boolean readChunk(Chunk chunk, ChunkColumn column, int startX, int startY, int startZ, int chunkY) {
+        boolean writed = false;
 
-        for (int iX = 0; iX < 16; iX++) {
-            for (int iY = 0; iY < 16; iY++) {
-                for (int iZ = 0; iZ < 16; iZ++) {
-                    String name = column.getBlockState(iX, (y * 16) + iY, iZ).getName();
+        for (int iX = 0; iX < MC_CHUNK_AXIS; iX++) {
+            for (int iY = 0; iY < MC_CHUNK_AXIS; iY++) {
+                for (int iZ = 0; iZ < MC_CHUNK_AXIS; iZ++) {
+                    String name = column.getBlockState(iX, (chunkY * MC_CHUNK_AXIS) + iY, iZ).getName();
                     if (name.equals("minecraft:air")) {
                         continue;
                     }
 
-                    empty = false;
+                    writed = true;
                     Integer blockId = BLOCK_MAPPING.get(name);
                     if (blockId == null) {
                         blockId = invalidBlock.getId();
                         invalidStatistics.computeInt(name, (k, v) -> v == null ? 1 : v + 1);
                     }
 
-                    chunk.setBlockId(iX, iY, iZ, blockId);
+                    chunk.setBlockId(startX + iX, startY + iY, startZ + iZ, blockId);
                 }
             }
         }
 
-        if (empty) {
-            return new EmptyChunk(x, y, z);
-        }
-
-        return chunk;
+        return writed;
     }
 
     public String regionFileName(int regionX, int regionZ) {
@@ -134,10 +164,11 @@ public class AnvilLoader implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        loadedRegions.forEach((k,v) -> {
+        loadedRegions.forEach((k, v) -> {
             try {
                 v.close();
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         });
     }
 }

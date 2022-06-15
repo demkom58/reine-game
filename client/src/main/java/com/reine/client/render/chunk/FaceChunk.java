@@ -12,10 +12,12 @@ import java.nio.ByteBuffer;
 import java.util.EnumMap;
 import java.util.Map;
 
+import static com.reine.world.chunk.IChunk.*;
+
 public class FaceChunk implements Destroyable {
     private final EnumMap<RenderPass, ByteBuffer> passBuffers = new EnumMap<>(Map.of(
-            RenderPass.SOLID, MemoryUtil.memCalloc(IChunk.CHUNK_SIZE),
-            RenderPass.TRANSPARENT, MemoryUtil.memCalloc(IChunk.CHUNK_SIZE)
+            RenderPass.SOLID, MemoryUtil.memCalloc(CHUNK_SIZE),
+            RenderPass.TRANSPARENT, MemoryUtil.memCalloc(CHUNK_SIZE)
     ));
 
     public void singleUpdate(ChunkGrid grid, IChunk chunk, int x, int y, int z) {
@@ -52,9 +54,9 @@ public class FaceChunk implements Destroyable {
         for (RenderPass pass : RenderPass.values()) {
             final ByteBuffer buffer = faceChunk.getBuffer(pass);
 
-            for (int x = 0; x < IChunk.CHUNK_WIDTH; x++) {
-                for (int y = 0; y < IChunk.CHUNK_HEIGHT; y++) {
-                    for (int z = 0; z < IChunk.CHUNK_LENGTH; z++) {
+            for (int x = 0; x < CHUNK_WIDTH; x++) {
+                for (int y = 0; y < CHUNK_HEIGHT; y++) {
+                    for (int z = 0; z < CHUNK_LENGTH; z++) {
                         updateBlock(pass, grid, chunk, x, y, z, buffer);
                     }
                 }
@@ -96,14 +98,14 @@ public class FaceChunk implements Destroyable {
         y += offset.y;
         z += offset.z;
 
-        if (x >= 0 && x < IChunk.CHUNK_WIDTH && y >= 0 && y < IChunk.CHUNK_HEIGHT && z >= 0 && z < IChunk.CHUNK_LENGTH) {
+        if (x >= 0 && x < CHUNK_WIDTH && y >= 0 && y < CHUNK_HEIGHT && z >= 0 && z < CHUNK_LENGTH) {
             return Block.byId(chunk.getBlockId(x, y, z));
         }
 
         return Block.byId(grid.getBlockId(
-                chunk.getX() * IChunk.CHUNK_WIDTH + x,
-                chunk.getY() * IChunk.CHUNK_HEIGHT + y,
-                chunk.getZ() * IChunk.CHUNK_LENGTH + z
+                chunk.getX() * CHUNK_WIDTH + x,
+                chunk.getY() * CHUNK_HEIGHT + y,
+                chunk.getZ() * CHUNK_LENGTH + z
         ));
     }
 }

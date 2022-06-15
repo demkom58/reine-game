@@ -1,14 +1,11 @@
 package com.reine.world.chunk;
 
-import com.reine.block.Block;
-import org.joml.Vector3i;
-
 public interface IChunk {
-    int CHUNK_WIDTH = 16;
-    int CHUNK_HEIGHT = 16;
-    int CHUNK_LENGTH = 16;
+    int CHUNK_WIDTH = 32;
+    int CHUNK_HEIGHT = 32;
+    int CHUNK_LENGTH = 32;
     int CHUNK_SIZE = CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_LENGTH;
-    int CHUNK_COORDINATE_BITS = 4;
+    int CHUNK_COORDINATE_BITS = 5; // 32 (5 bits)
     int CHUNK_COORDINATE_MASK = (1 << CHUNK_COORDINATE_BITS) - 1;
 
     int getX();

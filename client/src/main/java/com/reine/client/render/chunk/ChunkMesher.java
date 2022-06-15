@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
+import static com.reine.world.chunk.IChunk.*;
+
 public class ChunkMesher {
     private final ChunkMeshCompiler meshCompiler;
 
@@ -42,9 +44,9 @@ public class ChunkMesher {
         final List<ChunkQuad> quads = new ArrayList<>();
 
         for (WorldSide side : WorldSide.values()) {
-            for (int x = 0; x < IChunk.CHUNK_WIDTH; x++) {
-                for (int y = 0; y < IChunk.CHUNK_HEIGHT; y++) {
-                    for (int z = 0; z < IChunk.CHUNK_LENGTH; z++) {
+            for (int x = 0; x < CHUNK_WIDTH; x++) {
+                for (int y = 0; y < CHUNK_HEIGHT; y++) {
+                    for (int z = 0; z < CHUNK_LENGTH; z++) {
                         final int index = idx(x, y, z);
                         final int blockId = chunk.getBlockId(index);
                         if (blockId <= 0 || !isSideVisible(culledFaces, index, side)) {
@@ -69,13 +71,13 @@ public class ChunkMesher {
     }
 
     private List<ChunkQuad> greedyQuads(MemoryStack stack, IChunk chunk, ByteBuffer culledFaces) {
-        final ByteBuffer mask = stack.calloc(IChunk.CHUNK_SIZE);
+        final ByteBuffer mask = stack.calloc(CHUNK_SIZE);
         final List<ChunkQuad> meshes = new ArrayList<>();
 
         for (WorldSide side : WorldSide.values()) {
-            for (int x = 0; x < IChunk.CHUNK_WIDTH; x++) {
-                for (int y = 0; y < IChunk.CHUNK_HEIGHT; y++) {
-                    for (int z = 0; z < IChunk.CHUNK_LENGTH; z++) {
+            for (int x = 0; x < CHUNK_WIDTH; x++) {
+                for (int y = 0; y < CHUNK_HEIGHT; y++) {
+                    for (int z = 0; z < CHUNK_LENGTH; z++) {
 
                         final int index = idx(x, y, z);
                         int blockId = chunk.getBlockId(index);
@@ -92,9 +94,9 @@ public class ChunkMesher {
                                 int height = 0;
 
                                 loop:
-                                for (int iY = y; iY < IChunk.CHUNK_HEIGHT; iY++) {
+                                for (int iY = y; iY < CHUNK_HEIGHT; iY++) {
                                     if (iY == y) {
-                                        for (int iZ = z; iZ < IChunk.CHUNK_LENGTH; iZ++) {
+                                        for (int iZ = z; iZ < CHUNK_LENGTH; iZ++) {
                                             int iterIdx = idx(x, iY, iZ);
 
                                             if (!isSideVisible(mask, iterIdx, side)
@@ -136,9 +138,9 @@ public class ChunkMesher {
                                 int height = 0;
 
                                 loop:
-                                for (int iX = x; iX < IChunk.CHUNK_WIDTH; iX++) {
+                                for (int iX = x; iX < CHUNK_WIDTH; iX++) {
                                     if (iX == x) {
-                                        for (int iZ = z; iZ < IChunk.CHUNK_LENGTH; iZ++) {
+                                        for (int iZ = z; iZ < CHUNK_LENGTH; iZ++) {
                                             int iterIdx = idx(iX, y, iZ);
                                             if (!isSideVisible(mask, iterIdx, side)
                                                     && isSideVisible(culledFaces, iterIdx, side)
@@ -179,9 +181,9 @@ public class ChunkMesher {
                                 int width = 0;
 
                                 loop:
-                                for (int iX = x; iX < IChunk.CHUNK_WIDTH; iX++) {
+                                for (int iX = x; iX < CHUNK_WIDTH; iX++) {
                                     if (iX == x) {
-                                        for (int iY = y; iY < IChunk.CHUNK_HEIGHT; iY++) {
+                                        for (int iY = y; iY < CHUNK_HEIGHT; iY++) {
                                             int iterIdx = idx(iX, iY, z);
                                             if (!isSideVisible(mask, iterIdx, side)
                                                     && isSideVisible(culledFaces, iterIdx, side)
