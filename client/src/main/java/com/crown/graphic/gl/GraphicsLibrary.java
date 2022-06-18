@@ -1,6 +1,5 @@
-package com.crown.graphic;
+package com.crown.graphic.gl;
 
-import com.crown.graphic.util.GraphicsError;
 import com.reine.util.OperatingSystem;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.system.MemoryUtil;
@@ -22,7 +21,7 @@ public final class GraphicsLibrary {
         setLogOnError();
 
         if (!glfwInit()) {
-            throw new GraphicsError("Failed to initialize GLFW");
+            throw new OpenGlHostException("Failed to initialize GLFW");
         }
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_TARGET_VERSION_MAJOR);
@@ -77,7 +76,7 @@ public final class GraphicsLibrary {
     }
 
     public static void throwError(int errorCode, long descriptionPointer) {
-        throw new IllegalStateException("GLFW error occurred " + errorCode + ": " + MemoryUtil.memUTF8(descriptionPointer));
+        throw new OpenGlDeviceException("GLFW error occurred " + errorCode + ": " + MemoryUtil.memUTF8(descriptionPointer));
     }
 
     public static void printError(int errorCode, long descriptionPointer) {

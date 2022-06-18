@@ -1,6 +1,5 @@
-package com.crown.graphic.texture;
+package com.crown.graphic.gl.texture;
 
-import com.crown.graphic.util.Destroyable;
 import com.crown.resource.image.GenericImageData;
 import org.lwjgl.opengl.NVBindlessTexture;
 
@@ -13,36 +12,35 @@ import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.opengl.NVBindlessTexture.glGetTextureHandleNV;
 import static org.lwjgl.opengl.NVBindlessTexture.glMakeTextureHandleResidentNV;
 
-public class BindlessTexture2D extends Texture2D {
-    private final long handle;
+public class GlBindlessTexture extends GlTexture {
+    private final long bindlessHandle;
 
-    public BindlessTexture2D(int name, long handle) {
-        super(name);
-        this.handle = handle;
+    public GlBindlessTexture(int type, int handle, long bindlessHandle) {
+        super(type, handle);
+        this.bindlessHandle = bindlessHandle;
     }
 
-
-    public long getHandle() {
-        return handle;
+    public long getBindlessHandle() {
+        return bindlessHandle;
     }
 
     @Override
     public void destroy() {
-        NVBindlessTexture.glMakeImageHandleNonResidentNV(handle);
+        NVBindlessTexture.glMakeImageHandleNonResidentNV(bindlessHandle);
         super.destroy();
     }
 
-    public static BindlessTexture2D from(GenericImageData texture, int anisoLevel) {
+    public static GlBindlessTexture from(GenericImageData texture, int anisoLevel) {
         return from(texture, anisoLevel, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
     }
 
-    public static BindlessTexture2D from(GenericImageData texture, int anisoLevel, int minFilter, int magFilter) {
+    public static GlBindlessTexture from(GenericImageData texture, int anisoLevel, int minFilter, int magFilter) {
         if (texture == null) {
-            throw new IllegalStateException("Failed to load texture!");
+            throw new IllegalArgumentException("Failed to load null texture!");
         }
 
-        int name = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, name);
+        int handle = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, handle);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -62,9 +60,9 @@ public class BindlessTexture2D extends Texture2D {
 
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso[0]);
 
-        long handle = glGetTextureHandleNV(name);
-        glMakeTextureHandleResidentNV(handle);
+        long bindlessHandle = glGetTextureHandleNV(handle);
+        glMakeTextureHandleResidentNV(bindlessHandle);
 
-        return new BindlessTexture2D(name, handle);
+        return new GlBindlessTexture(GL_TEXTURE_2D, handle, bindlessHandle);
     }
 }

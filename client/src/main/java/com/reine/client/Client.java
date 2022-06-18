@@ -1,10 +1,10 @@
 package com.reine.client;
 
 import com.crown.graphic.CrownGame;
-import com.crown.graphic.GraphicsLibrary;
-import com.crown.graphic.shader.Shader;
-import com.crown.graphic.shader.ShaderProgram;
-import com.crown.graphic.texture.TextureManager;
+import com.crown.graphic.gl.GraphicsLibrary;
+import com.crown.graphic.gl.shader.GlShader;
+import com.crown.graphic.gl.shader.GlShaderProgram;
+import com.crown.graphic.gl.shader.ShaderType;
 import com.crown.input.keyboard.Keyboard;
 import com.crown.input.mouse.Mouse;
 import com.crown.output.window.Window;
@@ -36,8 +36,8 @@ public class Client extends CrownGame {
             "GL_ARB_bindless_texture",
     };
 
-    ShaderProgram chunkShader;
-    ShaderProgram simpleShader;
+    GlShaderProgram chunkShader;
+    GlShaderProgram simpleShader;
 
     Mouse mouse;
     Keyboard keyboard;
@@ -90,19 +90,19 @@ public class Client extends CrownGame {
         textureManager.rebuild();
         chunkRenderer = new ChunkRenderer(renderer, textureManager);
 
-        try (Shader vertex = new Shader(getClass().getResource("/shader/chunk.vsh"), true,
+        try (GlShader vertex = new GlShader(ShaderType.VERTEX, getClass().getResource("/shader/chunk.vsh"),
                 "#version 450 core");
-             Shader fragment = new Shader(getClass().getResource("/shader/chunk.fsh"), false,
+             GlShader fragment = new GlShader(ShaderType.FRAGMENT, getClass().getResource("/shader/chunk.fsh"),
                      "#version 450 core",
                      "#define TEXTURES_COUNT " + textureManager.texturesCount())) {
-            chunkShader = new ShaderProgram(vertex, fragment);
+            chunkShader = new GlShaderProgram(vertex, fragment);
         }
 
-        try (Shader vertex = new Shader(getClass().getResource("/shader/simple.vsh"), true,
+        try (GlShader vertex = new GlShader(ShaderType.VERTEX, getClass().getResource("/shader/simple.vsh"),
                 "#version 450 core");
-             Shader fragment = new Shader(getClass().getResource("/shader/simple.fsh"), false,
+             GlShader fragment = new GlShader(ShaderType.FRAGMENT, getClass().getResource("/shader/simple.fsh"),
                      "#version 450 core")) {
-            simpleShader = new ShaderProgram(vertex, fragment);
+            simpleShader = new GlShaderProgram(vertex, fragment);
         }
 
 

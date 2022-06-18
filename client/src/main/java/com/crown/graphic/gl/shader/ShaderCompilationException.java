@@ -1,6 +1,8 @@
-package com.crown.graphic.util;
+package com.crown.graphic.gl.shader;
 
-public class ShaderCompilationException extends RuntimeException {
+import com.crown.graphic.gl.OpenGlHostException;
+
+public class ShaderCompilationException extends OpenGlHostException {
     public ShaderCompilationException() {
     }
 

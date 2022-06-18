@@ -1,8 +1,8 @@
 package com.reine.client.render.chunk;
 
 import com.crown.graphic.camera.Camera;
-import com.crown.graphic.shader.ShaderProgram;
-import com.crown.graphic.texture.TextureManager;
+import com.crown.graphic.gl.shader.GlShaderProgram;
+import com.reine.client.TextureManager;
 import com.crown.graphic.unit.Mesh;
 import com.reine.block.Block;
 import com.reine.client.render.Renderer;
@@ -86,7 +86,7 @@ public class ChunkRenderer {
         return toRender;
     }
 
-    public void render(Camera camera, ShaderProgram program, Collection<IChunk> chunks) {
+    public void render(Camera camera, GlShaderProgram program, Collection<IChunk> chunks) {
         final List<RenderChunk> toRender = new ArrayList<>(chunks.size());
         for (IChunk chunk : chunks) {
             int x = chunk.getX() * CHUNK_WIDTH;
@@ -119,7 +119,7 @@ public class ChunkRenderer {
         glBindVertexArray(0);
     }
 
-    private void renderSolid(ShaderProgram program, RenderChunk chunk) {
+    private void renderSolid(GlShaderProgram program, RenderChunk chunk) {
         Mesh solid = chunk.passes().get(RenderPass.SOLID);
         if (solid == null) {
             return;
@@ -131,7 +131,7 @@ public class ChunkRenderer {
         solid.draw();
     }
 
-    private void renderTransparent(ShaderProgram program, RenderChunk chunk) {
+    private void renderTransparent(GlShaderProgram program, RenderChunk chunk) {
         Mesh transparent = chunk.passes().get(RenderPass.TRANSPARENT);
         if (transparent == null) {
             return;
@@ -143,7 +143,7 @@ public class ChunkRenderer {
         transparent.draw();
     }
 
-    private void setChunkPosition(ShaderProgram program, RenderChunk chunk) {
+    private void setChunkPosition(GlShaderProgram program, RenderChunk chunk) {
         renderer.oneMainMatrix
                 .translate(
                         chunk.x() * CHUNK_WIDTH,

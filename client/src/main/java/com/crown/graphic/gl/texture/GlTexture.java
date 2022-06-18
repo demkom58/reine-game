@@ -1,40 +1,43 @@
-package com.crown.graphic.texture;
+package com.crown.graphic.gl.texture;
 
-import com.crown.graphic.util.Destroyable;
+import com.crown.graphic.gl.GlObject;
 import com.crown.resource.image.GenericImageData;
 
 import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
 import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT;
 import static org.lwjgl.opengl.GL33.*;
 
-public class Texture2D implements Destroyable {
-    private final int name;
+public class GlTexture extends GlObject {
+    private final int type;
 
-    public Texture2D(int name) {
-        this.name = name;
+    public GlTexture(int type, int handle) {
+        this.type = type;
+        this.setHandle(handle);
     }
 
-    public int getName() {
-        return name;
-    }
-
-    @Override
-    public void destroy() {
-        glDeleteTextures(name);
+    public int type() {
+        return type;
     }
 
     public void use(int index) {
         glActiveTexture(GL_TEXTURE0 + index);
-        glBindTexture(GL_TEXTURE_2D, name);
+        glBindTexture(type, getHandle());
     }
 
-    public static Texture2D from(GenericImageData texture, int anisoLevel) {
+    @Override
+    public void destroy() {
+        glDeleteTextures(getHandle());
+        this.invalidateHandle();
+    }
+
+
+    public static GlTexture from(GenericImageData texture, int anisoLevel) {
         return from(texture, anisoLevel, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
     }
 
-    public static Texture2D from(GenericImageData texture, int anisoLevel, int minFilter, int magFilter) {
+    public static GlTexture from(GenericImageData texture, int anisoLevel, int minFilter, int magFilter) {
         if (texture == null) {
-            throw new IllegalStateException("Failed to load texture!");
+            throw new IllegalArgumentException("Failed to load null texture!");
         }
 
         int handle = glGenTextures();
@@ -57,6 +60,6 @@ public class Texture2D implements Destroyable {
             glGenerateMipmap(GL_TEXTURE_2D);
         }
 
-        return new Texture2D(handle);
+        return new GlTexture(GL_TEXTURE_2D, handle);
     }
 }

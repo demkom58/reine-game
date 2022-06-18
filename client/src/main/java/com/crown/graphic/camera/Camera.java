@@ -1,6 +1,6 @@
 package com.crown.graphic.camera;
 
-import com.crown.graphic.GraphicsLibrary;
+import com.crown.graphic.gl.GraphicsLibrary;
 import com.crown.output.window.Window;
 import org.joml.CMatrix4f;
 import org.joml.Matrix4f;

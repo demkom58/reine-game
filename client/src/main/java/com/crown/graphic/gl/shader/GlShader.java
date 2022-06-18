@@ -1,7 +1,6 @@
-package com.crown.graphic.shader;
+package com.crown.graphic.gl.shader;
 
-import com.crown.graphic.util.Destroyable;
-import com.crown.graphic.util.ShaderCompilationException;
+import com.crown.graphic.gl.GlObject;
 import com.google.common.io.Resources;
 import org.lwjgl.system.MemoryStack;
 
@@ -13,12 +12,13 @@ import java.nio.charset.StandardCharsets;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
-public class Shader implements Destroyable {
-    private final int handle;
+public class GlShader extends GlObject {
 
-    public Shader(URL resource, boolean vertex, String... defines) {
+    public GlShader(ShaderType type, URL resource, String... defines) {
         try {
-            this.handle = glCreateShader(vertex ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
+            int handle = glCreateShader(type.id);
+            setHandle(handle);
+
             final String src = String.join("\n", defines)
                     + "\n" + Resources.toString(resource, StandardCharsets.UTF_8);
 
@@ -39,8 +39,10 @@ public class Shader implements Destroyable {
         }
     }
 
-    public Shader(boolean vertex, String... defines) {
-        this.handle = glCreateShader(vertex ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
+    public GlShader(ShaderType type, String... defines) {
+        int handle = glCreateShader(type.id);
+        setHandle(handle);
+
         glShaderSource(handle, defines);
         glCompileShader(handle);
 
@@ -55,12 +57,9 @@ public class Shader implements Destroyable {
         }
     }
 
-    public int getHandle() {
-        return handle;
-    }
-
     @Override
     public void destroy() {
-        glDeleteShader(handle);
+        glDeleteShader(getHandle());
+        invalidateHandle();
     }
 }

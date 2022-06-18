@@ -1,4 +1,4 @@
-package com.crown.graphic.texture;
+package com.crown.graphic.gl.texture;
 
 import com.crown.resource.image.ImageDimension;
 import com.crown.resource.image.AtlasImage;
@@ -16,13 +16,13 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 
-public class TextureAtlas2D extends Texture2D {
+public class GlTexture2dAtlas extends GlTexture {
     private final int width;
     private final int height;
     private final Map<String, ImageDimension> positions;
 
-    public TextureAtlas2D(int handle, int width, int height, Map<String, ImageDimension> positions) {
-        super(handle);
+    public GlTexture2dAtlas(int handle, int width, int height, Map<String, ImageDimension> positions) {
+        super(GL_TEXTURE_2D, handle);
         this.width = width;
         this.height = height;
         this.positions = positions;
@@ -44,11 +44,11 @@ public class TextureAtlas2D extends Texture2D {
         );
     }
 
-    public static TextureAtlas2D from(AtlasImage atlasImage, int anisoLevel) {
+    public static GlTexture2dAtlas from(AtlasImage atlasImage, int anisoLevel) {
         return from(Collections.singletonList(atlasImage), anisoLevel, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
     }
 
-    public static TextureAtlas2D from(List<AtlasImage> atlasMipMaps, int anisoLevel, int minFilter, int magFilter) {
+    public static GlTexture2dAtlas from(List<AtlasImage> atlasMipMaps, int anisoLevel, int minFilter, int magFilter) {
         AtlasImage sourceAtlas = atlasMipMaps.get(0);
         GenericImageData texture = sourceAtlas.getData();
 
@@ -89,12 +89,7 @@ public class TextureAtlas2D extends Texture2D {
                     data.width(), data.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, data.bytes());
         }
 
-        return new TextureAtlas2D(handle, width, height, sourceAtlas.getPositions());
-    }
-
-    @Override
-    public int getName() {
-        return super.getName();
+        return new GlTexture2dAtlas(handle, width, height, sourceAtlas.getPositions());
     }
 
     public int getHeight() {

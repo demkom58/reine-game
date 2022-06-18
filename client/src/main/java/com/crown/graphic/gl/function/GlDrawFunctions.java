@@ -1,4 +1,4 @@
-package com.crown.graphic.util;
+package com.crown.graphic.gl.function;
 
 import com.crown.graphic.unit.Mesh;
 import org.joml.Vector3f;
@@ -8,7 +8,7 @@ import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public final class Draw {
+public final class GlDrawFunctions {
     public static void line(Vector3f start, Vector3f end, Vector3f color) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             FloatBuffer coords = stack.mallocFloat(6);
