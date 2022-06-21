@@ -66,6 +66,8 @@ public abstract class GlBuffer extends GlObject {
 
     public abstract void upload(int target, ByteBuffer buf);
 
+    public abstract void upload(int target, ShortBuffer buf);
+
     public abstract void upload(int target, IntBuffer buf);
 
     public abstract void upload(int target, LongBuffer buf);

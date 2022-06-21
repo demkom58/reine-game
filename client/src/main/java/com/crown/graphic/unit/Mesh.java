@@ -1,25 +1,30 @@
 package com.crown.graphic.unit;
 
+import com.crown.graphic.gl.array.GlVertexArray;
+import com.crown.graphic.gl.attribute.GlVertexFormat;
+import com.crown.graphic.gl.buffer.GlMutableBuffer;
+import com.crown.graphic.gl.buffer.VerticesData;
 import com.crown.graphic.util.Destroyable;
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectList;
 
 import java.nio.*;
 
 import static org.lwjgl.opengl.GL33.*;
 
-public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap usedVbo) implements Destroyable {
+public record Mesh(int mode, int vertexCount, GlVertexArray vao, GlMutableBuffer ebo, GlMutableBuffer[] vbos) implements Destroyable {
     public static final Mesh EMPTY = Mesh.triangles().build();
 
     public void bind() {
-        glBindVertexArray(vaoId);
+        vao.bind();
     }
 
     public void unbind() {
-        glBindVertexArray(0);
+        vao.unbind();
     }
 
     public void draw() {
-        if (eboId == -1) {
+        if (ebo == null) {
             glDrawArrays(mode, 0, vertexCount);
         } else {
             glDrawElements(mode, vertexCount, GL_UNSIGNED_INT, 0);
@@ -28,26 +33,38 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
 
     @Override
     public void destroy() {
-        glDisableVertexAttribArray(0);
+        vao.unbind();
 
         // Delete the VBO
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        for (int vboId : usedVbo.values()) {
-            glDeleteBuffers(vboId);
+        if (ebo != null) {
+            ebo.destroy();
+        }
+
+        for (GlMutableBuffer vbo : vbos) {
+            vbo.destroy();
         }
 
         // Delete VAO
         glBindVertexArray(0);
-        glDeleteVertexArrays(vaoId);
+        vao.destroy();
     }
 
-    public Builder modify() {
-        if (true) {
-            throw new UnsupportedOperationException("Not implemented yet!");
-        }
+    public static <T extends Enum<T>> Mesh of(int mode, int usage, int vertexCount, VerticesData data) {
+        GlVertexFormat<?> format = data.format();
+        GlVertexArray vao = new GlVertexArray();
+        GlMutableBuffer vbo = new GlMutableBuffer(usage);
 
-        return new Modifier(mode, vaoId, eboId, vertexCount, usedVbo, this);
+        vao.bind();
+        vbo.bind(GL_ARRAY_BUFFER);
+        vbo.upload(GL_ARRAY_BUFFER, data.buffer());
+        format.bindVertexAttributes();
+        format.enableVertexAttributes();
+        vbo.unbind(GL_ARRAY_BUFFER);
+        vao.unbind();
+
+        return new Mesh(mode, vertexCount, vao, null, new GlMutableBuffer[] { vbo });
     }
 
     public static Builder builder(int mode) {
@@ -63,30 +80,33 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
     }
 
     public static class Builder {
-        private final int vaoId;
-        private int eboId;
+        private final GlVertexArray vao;
+        private GlMutableBuffer ebo;
         private int vertices;
-        private final Int2IntMap vbo;
+        private final ObjectList<GlMutableBuffer> vbos;
 
         private final int mode;
 
         private Builder(int mode) {
             this.mode = mode;
 
-            this.vaoId = glGenVertexArrays();
-            this.eboId = -1;
+            this.vao = new GlVertexArray();
+            this.ebo = null;
             this.vertices = -1;
-            this.vbo = new Int2IntOpenHashMap();
-            glBindVertexArray(vaoId);
+            this.vbos = new ObjectArrayList<>();
+
+            vao.bind();
         }
 
-        private Builder(int mode, int vaoId, int eboId, int vertices, Int2IntMap vbo) {
+        private Builder(int mode, GlVertexArray vao, GlMutableBuffer ebo, int vertices, ObjectList<GlMutableBuffer> vbos) {
             this.mode = mode;
-            this.vaoId = vaoId;
-            this.eboId = eboId;
+
+            this.vao = vao;
+            this.ebo = ebo;
             this.vertices = vertices;
-            this.vbo = vbo;
-            glBindVertexArray(vaoId);
+            this.vbos = vbos;
+
+            vao.bind();
         }
 
         public Builder indices(IntBuffer indices) {
@@ -96,9 +116,9 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
         public Builder indices(IntBuffer indices, int usage) {
             this.vertices = indices.remaining();
 
-            eboId = glGenBuffers();
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, usage);
+            ebo = new GlMutableBuffer(GL_STATIC_DRAW);
+            ebo.bind(GL_ELEMENT_ARRAY_BUFFER);
+            ebo.upload(GL_ELEMENT_ARRAY_BUFFER, indices);
 
             return this;
         }
@@ -112,10 +132,11 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
                 vertices = positions.remaining() / count;
             }
 
-            int vboId = vbo.computeIfAbsent(index, i -> glGenBuffers());
+            GlMutableBuffer vbo = computeVBO(index, usage);
 
-            glBindBuffer(GL_ARRAY_BUFFER, vboId);
-            glBufferData(GL_ARRAY_BUFFER, positions, usage);
+            vbo.bind(GL_ARRAY_BUFFER);
+            vbo.upload(GL_ARRAY_BUFFER, positions);
+
             glVertexAttribPointer(index, count, GL_FLOAT, normalized, 0, 0);
             glEnableVertexAttribArray(index);
 
@@ -131,10 +152,11 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
                 vertices = positions.remaining() / 3;
             }
 
-            int vboId = vbo.computeIfAbsent(index, i -> glGenBuffers());
+            GlMutableBuffer vbo = computeVBO(index, usage);
 
-            glBindBuffer(GL_ARRAY_BUFFER, vboId);
-            glBufferData(GL_ARRAY_BUFFER, positions, usage);
+            vbo.bind(GL_ARRAY_BUFFER);
+            vbo.upload(GL_ARRAY_BUFFER, positions);
+
             glVertexAttribIPointer(index, count, GL_INT, 0, 0);
             glEnableVertexAttribArray(index);
 
@@ -146,10 +168,11 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
         }
 
         public Builder attribute(int index, ByteBuffer values, int count, int usage) {
-            int vboId = vbo.computeIfAbsent(index, i -> glGenBuffers());
+            GlMutableBuffer vbo = computeVBO(index, usage);
 
-            glBindBuffer(GL_ARRAY_BUFFER, vboId);
-            glBufferData(GL_ARRAY_BUFFER, values, usage);
+            vbo.bind(GL_ARRAY_BUFFER);
+            vbo.upload(GL_ARRAY_BUFFER, values);
+
             glVertexAttribIPointer(index, count, GL_BYTE, 0, 0);
             glEnableVertexAttribArray(index);
 
@@ -161,10 +184,11 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
         }
 
         public Builder attribute(int index, IntBuffer values, int count, int usage) {
-            int vboId = vbo.computeIfAbsent(index, i -> glGenBuffers());
+            GlMutableBuffer vbo = computeVBO(index, usage);
 
-            glBindBuffer(GL_ARRAY_BUFFER, vboId);
-            glBufferData(GL_ARRAY_BUFFER, values, usage);
+            vbo.bind(GL_ARRAY_BUFFER);
+            vbo.upload(GL_ARRAY_BUFFER, values);
+
             glVertexAttribIPointer(index, count, GL_INT, 0, 0);
             glEnableVertexAttribArray(index);
 
@@ -176,10 +200,11 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
         }
 
         public Builder attribute(int index, ShortBuffer values, int count, int usage) {
-            int vboId = vbo.computeIfAbsent(index, i -> glGenBuffers());
+            GlMutableBuffer vbo = computeVBO(index, usage);
 
-            glBindBuffer(GL_ARRAY_BUFFER, vboId);
-            glBufferData(GL_ARRAY_BUFFER, values, usage);
+            vbo.bind(GL_ARRAY_BUFFER);
+            vbo.upload(GL_ARRAY_BUFFER, values);
+
             glVertexAttribIPointer(index, count, GL_SHORT, 0, 0);
             glEnableVertexAttribArray(index);
 
@@ -191,10 +216,11 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
         }
 
         public Builder attributeUnsigned(int index, IntBuffer values, int count, int usage) {
-            int vboId = vbo.computeIfAbsent(index, i -> glGenBuffers());
+            GlMutableBuffer vbo = computeVBO(index, usage);
 
-            glBindBuffer(GL_ARRAY_BUFFER, vboId);
-            glBufferData(GL_ARRAY_BUFFER, values, usage);
+            vbo.bind(GL_ARRAY_BUFFER);
+            vbo.upload(GL_ARRAY_BUFFER, values);
+
             glVertexAttribIPointer(index, count, GL_UNSIGNED_INT, 0, 0);
             glEnableVertexAttribArray(index);
 
@@ -206,10 +232,11 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
         }
 
         public Builder attributeUnsigned(int index, ByteBuffer values, int count, int usage) {
-            int vboId = vbo.computeIfAbsent(index, i -> glGenBuffers());
+            GlMutableBuffer vbo = computeVBO(index, usage);
 
-            glBindBuffer(GL_ARRAY_BUFFER, vboId);
-            glBufferData(GL_ARRAY_BUFFER, values, usage);
+            vbo.bind(GL_ARRAY_BUFFER);
+            vbo.upload(GL_ARRAY_BUFFER, values);
+
             glVertexAttribIPointer(index, count, GL_UNSIGNED_BYTE, 0, 0);
             glEnableVertexAttribArray(index);
 
@@ -221,10 +248,11 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
         }
 
         public Builder attribute(int index, FloatBuffer values, int count, boolean normalized, int usage) {
-            int vboId = vbo.computeIfAbsent(index, i -> glGenBuffers());
+            GlMutableBuffer vbo = computeVBO(index, usage);
 
-            glBindBuffer(GL_ARRAY_BUFFER, vboId);
-            glBufferData(GL_ARRAY_BUFFER, values, usage);
+            vbo.bind(GL_ARRAY_BUFFER);
+            vbo.upload(GL_ARRAY_BUFFER, values);
+
             glVertexAttribPointer(index, count, GL_FLOAT, normalized, 0, 0);
             glEnableVertexAttribArray(index);
 
@@ -236,10 +264,11 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
         }
 
         public Builder attribute(int index, DoubleBuffer values, int count, boolean normalized, int usage) {
-            int vboId = vbo.computeIfAbsent(index, i -> glGenBuffers());
+            GlMutableBuffer vbo = computeVBO(index, usage);
 
-            glBindBuffer(GL_ARRAY_BUFFER, vboId);
-            glBufferData(GL_ARRAY_BUFFER, values, usage);
+            vbo.bind(GL_ARRAY_BUFFER);
+            vbo.upload(GL_ARRAY_BUFFER, values);
+
             glVertexAttribPointer(index, count, GL_DOUBLE, normalized, 0, 0);
             glEnableVertexAttribArray(index);
 
@@ -251,24 +280,21 @@ public record Mesh(int mode, int vertexCount, int vaoId, int eboId, Int2IntMap u
             return this;
         }
 
+        private GlMutableBuffer computeVBO(int index, int hints) {
+            if (vbos.size() <= index) {
+                GlMutableBuffer vbo = new GlMutableBuffer(hints);
+                vbos.add(index, vbo);
+                return vbo;
+            }
+
+            return vbos.get(index);
+        }
+
         public Mesh build() {
             glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
+            vao.unbind();
 
-            return new Mesh(mode, vertices, vaoId, eboId, vbo);
-        }
-    }
-
-    public static class Modifier extends Builder {
-        private final Mesh mesh;
-
-        public Modifier(int mode, int vaoId, int eboId, int vertices, Int2IntMap vbo, Mesh mesh) {
-            super(mode, vaoId, eboId, vertices, vbo);
-            this.mesh = mesh;
-        }
-
-        public Mesh build() {
-            return mesh;
+            return new Mesh(mode, vertices, vao, ebo, vbos.toArray(new GlMutableBuffer[0]));
         }
     }
 }

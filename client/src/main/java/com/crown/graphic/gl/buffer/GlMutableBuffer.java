@@ -17,6 +17,11 @@ public class GlMutableBuffer extends GlBuffer {
     }
 
     @Override
+    public void upload(int target, ShortBuffer buf) {
+        glBufferData(target, buf, this.hints);
+    }
+
+    @Override
     public void upload(int target, IntBuffer buf) {
         glBufferData(target, buf, this.hints);
     }
