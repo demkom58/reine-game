@@ -6,7 +6,8 @@ layout(binding = 3) uniform Textures {
 };
 
 in vec3 Pos;
-in flat ivec4 Face;
+in flat ivec3 Face;
+in flat int Texture;
 
 out vec4 FragColor;
 
@@ -15,7 +16,7 @@ void main() {
     float v = dot(Face.yxz, Pos.zyy);
     vec2 tileUV = fract(abs(vec2(u, v)));
 
-    sampler2D sampler = sampler2D(tex_handles[Face.w]);
+    sampler2D sampler = sampler2D(tex_handles[Texture]);
 
     FragColor = texture(sampler, tileUV);
 }

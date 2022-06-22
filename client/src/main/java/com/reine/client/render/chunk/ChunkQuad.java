@@ -1,8 +1,7 @@
 package com.reine.client.render.chunk;
 
 import com.reine.util.WorldSide;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
+import org.joml.Vector3b;
 
-public record ChunkQuad(Vector3i start, Vector3i end, WorldSide side, int blockId) {
+public record ChunkQuad(Vector3b start, Vector3b end, WorldSide side, int blockId) {
 }
