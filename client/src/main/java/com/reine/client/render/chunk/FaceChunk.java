@@ -6,6 +6,7 @@ import com.reine.block.Block;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.IChunk;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
@@ -93,7 +94,7 @@ public class FaceChunk implements Destroyable {
     }
 
     private static Block getNeighborBlock(ChunkGrid grid, IChunk chunk, int x, int y, int z, WorldSide side) {
-        final Vector3f offset = side.vec();
+        final Vector3i offset = side.vec();
         x += offset.x;
         y += offset.y;
         z += offset.z;

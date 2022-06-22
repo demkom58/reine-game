@@ -5,6 +5,7 @@ import com.reine.util.Direction;
 import com.reine.util.WorldSide;
 import com.reine.world.chunk.IChunk;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
@@ -53,10 +54,10 @@ public class ChunkMesher {
                             continue;
                         }
 
-                        Vector3f start = side.direction() == Direction.POSITIVE ? side.vec() : new Vector3f();
+                        Vector3i start = side.direction() == Direction.POSITIVE ? side.vec() : new Vector3i();
                         start.add(x, y, z);
 
-                        Vector3f end = new Vector3f(start);
+                        Vector3i end = new Vector3i(start);
                         end.add(side.spaceVec());
 
                         final ChunkQuad quad = new ChunkQuad(start, end, side, blockId);
@@ -127,8 +128,8 @@ public class ChunkMesher {
 
                                 int sideOffset = side.direction() == Direction.POSITIVE ? 1 : 0;
                                 meshes.add(new ChunkQuad(
-                                        new Vector3f(x + sideOffset, y, z),
-                                        new Vector3f(x + sideOffset, y + height, z + width),
+                                        new Vector3i(x + sideOffset, y, z),
+                                        new Vector3i(x + sideOffset, y + height, z + width),
                                         side,
                                         blockId
                                 ));
@@ -170,8 +171,8 @@ public class ChunkMesher {
 
                                 int sideOffset = side.direction() == Direction.POSITIVE ? 1 : 0;
                                 meshes.add(new ChunkQuad(
-                                        new Vector3f(x, y + sideOffset, z),
-                                        new Vector3f(x + width, y + sideOffset, z + height),
+                                        new Vector3i(x, y + sideOffset, z),
+                                        new Vector3i(x + width, y + sideOffset, z + height),
                                         side,
                                         blockId
                                 ));
@@ -213,8 +214,8 @@ public class ChunkMesher {
 
                                 int sideOffset = side.direction() == Direction.POSITIVE ? 1 : 0;
                                 meshes.add(new ChunkQuad(
-                                        new Vector3f(x, y, z + sideOffset),
-                                        new Vector3f(x + width, y + height, z + sideOffset),
+                                        new Vector3i(x, y, z + sideOffset),
+                                        new Vector3i(x + width, y + height, z + sideOffset),
                                         side,
                                         blockId
                                 ));
