@@ -1,12 +1,10 @@
-package com.reine.client.render.chunk;
+package com.reine.client.render.chunk.util;
 
 import com.crown.graphic.util.Destroyable;
 import com.reine.util.WorldSide;
 import com.reine.block.Block;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.IChunk;
-import org.joml.Vector3b;
-import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.lwjgl.system.MemoryUtil;
 

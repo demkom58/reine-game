@@ -12,7 +12,7 @@ import com.crown.util.UpdateCounter;
 import com.reine.block.Block;
 import com.reine.client.render.Renderer;
 import com.reine.client.render.chunk.ChunkRenderer;
-import com.reine.client.render.chunk.RenderChunk;
+import com.reine.client.render.chunk.mesh.RenderChunk;
 import com.reine.client.save.minecaft.anvil.AnvilLoader;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.IChunk;

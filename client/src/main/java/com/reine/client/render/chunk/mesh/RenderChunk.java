@@ -1,9 +1,9 @@
-package com.reine.client.render.chunk;
+package com.reine.client.render.chunk.mesh;
 
 import com.crown.graphic.unit.ComposedMesh;
 import com.crown.graphic.unit.Mesh;
-import com.crown.graphic.unit.SplitMesh;
 import com.crown.graphic.util.Destroyable;
+import com.reine.client.render.chunk.util.RenderPass;
 
 import java.util.EnumMap;
 

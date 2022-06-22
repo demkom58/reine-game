@@ -1,4 +1,4 @@
-package com.reine.client.render.chunk;
+package com.reine.client.render.chunk.util;
 
 import com.reine.util.WorldSide;
 import org.joml.Vector3b;

@@ -1,42 +1,38 @@
 package com.reine.client.render.chunk;
 
 import com.crown.graphic.camera.Camera;
-import com.crown.graphic.gl.buffer.VerticesData;
 import com.crown.graphic.gl.shader.GlShaderProgram;
 import com.crown.graphic.unit.ComposedMesh;
 import com.reine.client.TextureManager;
-import com.crown.graphic.unit.SplitMesh;
 import com.reine.client.render.Renderer;
+import com.reine.client.render.chunk.mesh.ChunkMesher;
+import com.reine.client.render.chunk.mesh.RenderChunk;
+import com.reine.client.render.chunk.util.FaceChunk;
+import com.reine.client.render.chunk.util.RenderPass;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.ChunkPosition;
 import com.reine.world.chunk.IChunk;
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.system.MemoryUtil;
 
-import java.nio.ByteBuffer;
 import java.util.*;
 
 import static com.reine.world.chunk.IChunk.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class ChunkRenderer {
-    public static final int TRIANGLE_VERTICES = 3;
-    public static final int QUAD_TRIANGLES = 2;
-
-
     private final Renderer renderer;
     private final TextureManager textureManager;
+    private final ChunkMesher mesher;
 
     private final Map<ChunkPosition, FaceChunk> facedChunks = new HashMap<>();
     private final Map<ChunkPosition, RenderChunk> renderChunks = new HashMap<>();
 
-    private final ChunkMesher mesher = new ChunkMesher(this::compileMesh);
 
     public ChunkRenderer(Renderer renderer, TextureManager textureManager) {
         this.renderer = renderer;
         this.textureManager = textureManager;
+        this.mesher = new ChunkMesher(textureManager);
     }
 
     public void setChunk(ChunkGrid grid, @NotNull IChunk chunk) {
@@ -152,24 +148,4 @@ public class ChunkRenderer {
                 ).get(renderer.modelBuffer);
         program.setUniformMatrix4fv(0, false, renderer.modelBuffer);
     }
-
-    public ComposedMesh compileMesh(List<ChunkQuad> quads) {
-        final int quadsCount = quads.size();
-        if (quadsCount == 0) {
-            return null;
-        }
-
-        final int verticesCount = quadsCount * QUAD_TRIANGLES * TRIANGLE_VERTICES;
-        final int bytesCount = verticesCount * ChunkFormat.CHUNK_FORMAT.getStride();
-        final ByteBuffer vertexData = MemoryUtil.memAlloc(bytesCount);
-
-        ChunkFormat.write(textureManager, quads, vertexData);
-
-        vertexData.flip();
-        final ComposedMesh chunk = ComposedMesh.of(GL_TRIANGLES, GL_STATIC_DRAW, new VerticesData(ChunkFormat.CHUNK_FORMAT, vertexData));
-        MemoryUtil.memFree(vertexData);
-
-        return chunk;
-    }
-
 }

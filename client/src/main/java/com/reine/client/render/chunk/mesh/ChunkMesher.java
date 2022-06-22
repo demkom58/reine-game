@@ -1,12 +1,18 @@
-package com.reine.client.render.chunk;
+package com.reine.client.render.chunk.mesh;
 
+import com.crown.graphic.gl.buffer.VerticesData;
 import com.crown.graphic.unit.ComposedMesh;
-import com.crown.graphic.unit.SplitMesh;
+import com.reine.client.TextureManager;
+import com.reine.client.render.chunk.ChunkFormat;
+import com.reine.client.render.chunk.util.FaceChunk;
+import com.reine.client.render.chunk.util.ChunkQuad;
+import com.reine.client.render.chunk.util.RenderPass;
 import com.reine.util.Direction;
 import com.reine.util.WorldSide;
 import com.reine.world.chunk.IChunk;
 import org.joml.Vector3b;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -14,12 +20,17 @@ import java.util.EnumMap;
 import java.util.List;
 
 import static com.reine.world.chunk.IChunk.*;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 
 public class ChunkMesher {
-    private final ChunkMeshCompiler meshCompiler;
+    public static final int TRIANGLE_VERTICES = 3;
+    public static final int QUAD_TRIANGLES = 2;
 
-    public ChunkMesher(ChunkMeshCompiler meshCompiler) {
-        this.meshCompiler = meshCompiler;
+    private final TextureManager textureManager;
+
+    public ChunkMesher(TextureManager textureManager) {
+        this.textureManager = textureManager;
     }
 
     public EnumMap<RenderPass, ComposedMesh> mesh(IChunk chunk, FaceChunk faceChunk) {
@@ -31,7 +42,7 @@ public class ChunkMesher {
         for (RenderPass pass : RenderPass.values()) {
             try (MemoryStack stack = MemoryStack.stackPush()) {
                 List<ChunkQuad> quads = greedyQuads(stack, chunk, faceChunk.getBuffer(pass));
-                ComposedMesh mesh = meshCompiler.compile(quads);
+                ComposedMesh mesh = compileMesh(quads);
                 if (mesh != null) {
                     meshes.put(pass, mesh);
                 }
@@ -227,6 +238,25 @@ public class ChunkMesher {
         }
 
         return meshes;
+    }
+
+    public ComposedMesh compileMesh(List<ChunkQuad> quads) {
+        final int quadsCount = quads.size();
+        if (quadsCount == 0) {
+            return null;
+        }
+
+        final int verticesCount = quadsCount * QUAD_TRIANGLES * TRIANGLE_VERTICES;
+        final int bytesCount = verticesCount * ChunkFormat.CHUNK_FORMAT.getStride();
+        final ByteBuffer vertexData = MemoryUtil.memAlloc(bytesCount);
+
+        ChunkFormat.write(textureManager, quads, vertexData);
+
+        vertexData.flip();
+        final ComposedMesh chunk = ComposedMesh.of(GL_TRIANGLES, GL_STATIC_DRAW, new VerticesData(ChunkFormat.CHUNK_FORMAT, vertexData));
+        MemoryUtil.memFree(vertexData);
+
+        return chunk;
     }
 
     private static boolean isSideVisible(ByteBuffer masks, int idx, WorldSide side) {
