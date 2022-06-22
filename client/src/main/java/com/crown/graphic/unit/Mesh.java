@@ -51,7 +51,7 @@ public record Mesh(int mode, int vertexCount, GlVertexArray vao, GlMutableBuffer
         vao.destroy();
     }
 
-    public static <T extends Enum<T>> Mesh of(int mode, int usage, int vertexCount, VerticesData data) {
+    public static Mesh of(int mode, int usage, VerticesData data) {
         GlVertexFormat<?> format = data.format();
         GlVertexArray vao = new GlVertexArray();
         GlMutableBuffer vbo = new GlMutableBuffer(usage);
@@ -64,7 +64,7 @@ public record Mesh(int mode, int vertexCount, GlVertexArray vao, GlMutableBuffer
         vbo.unbind(GL_ARRAY_BUFFER);
         vao.unbind();
 
-        return new Mesh(mode, vertexCount, vao, null, new GlMutableBuffer[] { vbo });
+        return new Mesh(mode, data.vertexCount(), vao, null, new GlMutableBuffer[] { vbo });
     }
 
     public static Builder builder(int mode) {
