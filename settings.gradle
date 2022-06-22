@@ -18,6 +18,10 @@ dependencyResolutionManagement {
             url "https://oss.sonatype.org/content/repositories/snapshots/"
         }
         maven {
+            name "Sonatype S01"
+            url "https://s01.oss.sonatype.org/content/repositories/snapshots"
+        }
+        maven {
             name "Sponge"
             url "https://repo.spongepowered.org/maven"
         }

@@ -1,20 +1,19 @@
 package com.reine.client.render.chunk;
 
-import com.crown.graphic.shader.ShaderProgram;
-import com.crown.graphic.texture.TextureManager;
-import com.crown.graphic.unit.Mesh;
-import com.reine.block.Block;
+import com.crown.graphic.camera.Camera;
+import com.crown.graphic.gl.shader.GlShaderProgram;
+import com.crown.graphic.unit.ComposedMesh;
+import com.reine.client.TextureManager;
 import com.reine.client.render.Renderer;
-import com.reine.util.Axis;
-import com.reine.util.WorldSide;
+import com.reine.client.render.chunk.mesh.ChunkMesher;
+import com.reine.client.render.chunk.mesh.RenderChunk;
+import com.reine.client.render.chunk.util.FaceChunk;
+import com.reine.client.render.chunk.util.RenderPass;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.ChunkPosition;
 import com.reine.world.chunk.IChunk;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
-import org.lwjgl.system.MemoryUtil;
 
-import java.nio.FloatBuffer;
 import java.util.*;
 
 import static com.reine.world.chunk.IChunk.*;
@@ -22,21 +21,18 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class ChunkRenderer {
-    private static final int TRIANGLE_VERTICES = 3;
-    private static final int QUAD_TRIANGLES = 2;
-
-
     private final Renderer renderer;
     private final TextureManager textureManager;
+    private final ChunkMesher mesher;
 
     private final Map<ChunkPosition, FaceChunk> facedChunks = new HashMap<>();
     private final Map<ChunkPosition, RenderChunk> renderChunks = new HashMap<>();
 
-    private final ChunkMesher mesher = new ChunkMesher(this::compileMesh);
 
     public ChunkRenderer(Renderer renderer, TextureManager textureManager) {
         this.renderer = renderer;
         this.textureManager = textureManager;
+        this.mesher = new ChunkMesher(textureManager);
     }
 
     public void setChunk(ChunkGrid grid, @NotNull IChunk chunk) {
@@ -77,49 +73,72 @@ public class ChunkRenderer {
         }
     }
 
-    public void render(ShaderProgram program, Collection<IChunk> chunks) {
+    public List<RenderChunk> getRenderChunks(Collection<IChunk> chunks) {
         final List<RenderChunk> toRender = new ArrayList<>(chunks.size());
         for (IChunk chunk : chunks) {
             toRender.add(renderChunks.get(ChunkPosition.fromChunk(chunk)));
         }
+        return toRender;
+    }
 
-        textureManager.getAtlas().use(0);
+    public void render(Camera camera, GlShaderProgram program, Collection<IChunk> chunks) {
+        final List<RenderChunk> toRender = new ArrayList<>(chunks.size());
+        for (IChunk chunk : chunks) {
+            int x = chunk.getX() * CHUNK_WIDTH;
+            int y = chunk.getY() * CHUNK_HEIGHT;
+            int z = chunk.getZ() * CHUNK_LENGTH;
+
+            if (camera.isBoxInFrustum(x, y, z, CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_LENGTH)) {
+                toRender.add(renderChunks.get(ChunkPosition.fromChunk(chunk)));
+            }
+        }
+//        System.out.println("Chunks to render: " + toRender.size());
+
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
 
         for (RenderChunk chunk : toRender) {
             renderSolid(program, chunk);
         }
 
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
         for (RenderChunk chunk : toRender) {
             renderTransparent(program, chunk);
         }
+        glDisable(GL_BLEND);
 
+        glDisable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
+
         glBindVertexArray(0);
     }
 
-    private void renderSolid(ShaderProgram program, RenderChunk chunk) {
+    private void renderSolid(GlShaderProgram program, RenderChunk chunk) {
+        ComposedMesh solid = chunk.passes().get(RenderPass.SOLID);
+        if (solid == null) {
+            return;
+        }
+
         setChunkPosition(program, chunk);
 
-        Mesh solid = chunk.passes().get(RenderPass.SOLID);
         solid.bind();
         solid.draw();
     }
 
-    private void renderTransparent(ShaderProgram program, RenderChunk chunk) {
+    private void renderTransparent(GlShaderProgram program, RenderChunk chunk) {
+        ComposedMesh transparent = chunk.passes().get(RenderPass.TRANSPARENT);
+        if (transparent == null) {
+            return;
+        }
+
         setChunkPosition(program, chunk);
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_BLEND);
-
-        Mesh transparent = chunk.passes().get(RenderPass.TRANSPARENT);
         transparent.bind();
         transparent.draw();
-
-        glDisable(GL_BLEND);
     }
 
-    private void setChunkPosition(ShaderProgram program, RenderChunk chunk) {
+    private void setChunkPosition(GlShaderProgram program, RenderChunk chunk) {
         renderer.oneMainMatrix
                 .translate(
                         chunk.x() * CHUNK_WIDTH,
@@ -127,71 +146,6 @@ public class ChunkRenderer {
                         chunk.z() * CHUNK_LENGTH,
                         renderer.modelMatrix
                 ).get(renderer.modelBuffer);
-        program.setUniformMatrix4fv("model", false, renderer.modelBuffer);
+        program.setUniformMatrix4fv(0, false, renderer.modelBuffer);
     }
-
-    public Mesh compileMesh(List<ChunkQuad> quads) {
-        final int quadsCount = quads.size();
-        final FloatBuffer texB = MemoryUtil.memCallocFloat(quadsCount * 4); // vec4(atlas x, atlas y, tile width, tile height)
-        final FloatBuffer faceB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
-        final FloatBuffer posB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
-
-        for (ChunkQuad quad : quads) {
-            final Vector3f str = quad.start();
-            final Vector3f end = quad.end();
-
-            final Block block = Block.byId(quad.blockId());
-            final WorldSide side = quad.side();
-            final Axis axis = side.axis();
-
-            switch (axis) {
-                case X -> posB.put(new float[]{
-                        str.x, str.y, str.z,
-                        str.x, str.y, end.z,
-                        str.x, end.y, str.z,
-
-                        str.x, end.y, str.z,
-                        str.x, str.y, end.z,
-                        str.x, end.y, end.z,
-                });
-                case Y -> posB.put(new float[]{
-                        str.x, str.y, str.z,
-                        end.x, str.y, str.z,
-                        str.x, str.y, end.z,
-
-                        end.x, str.y, str.z,
-                        str.x, str.y, end.z,
-                        end.x, str.y, end.z,
-                });
-                case Z -> posB.put(new float[]{
-                        str.x, str.y, str.z,
-                        end.x, str.y, str.z,
-                        str.x, end.y, str.z,
-
-                        end.x, str.y, str.z,
-                        str.x, end.y, str.z,
-                        end.x, end.y, str.z,
-                });
-            }
-
-            Vector3f normal = axis.getVector();
-            faceB.put(new float[] {
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-            });
-            texB.put(textureManager.normalizedDimension(block.getTexture(side)));
-        }
-
-        return Mesh.triangles()
-                .positions(0, posB.flip(), 3, false)
-                .attribute(1, faceB.flip(), 3, false)
-                .attribute(2, texB.flip(), 4, false)
-                .attributeDivisor(2, 6)
-                .build();
-    }
-
 }

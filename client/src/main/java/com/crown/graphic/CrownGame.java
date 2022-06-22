@@ -1,5 +1,7 @@
 package com.crown.graphic;
 
+import com.crown.graphic.camera.Camera;
+import com.crown.graphic.gl.GraphicsLibrary;
 import com.crown.graphic.util.Destroyable;
 import com.crown.output.window.Window;
 

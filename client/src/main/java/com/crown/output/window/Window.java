@@ -1,7 +1,7 @@
 package com.crown.output.window;
 
+import com.crown.graphic.gl.OpenGlHostException;
 import com.crown.graphic.util.Destroyable;
-import com.crown.graphic.util.GraphicsError;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
@@ -37,7 +37,7 @@ public class Window implements Destroyable {
 
         this.handle = glfwCreateWindow(width, height, title, monitor, share);
         if (handle == NULL) {
-            throw new GraphicsError("Failed to create GLFW window!");
+            throw new OpenGlHostException("Failed to create GLFW window!");
         }
 
         glfwMakeContextCurrent(handle);

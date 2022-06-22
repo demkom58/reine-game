@@ -19,6 +19,7 @@ switch (OperatingSystem.current()) {
 
 dependencies {
     implementation project(":common")
+    implementation 'io.github.jglrxavpok.hephaistos:common:2.4.4'
 
     implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
 
