@@ -1,6 +1,7 @@
 package com.reine.client.render.chunk;
 
 import com.crown.graphic.camera.Camera;
+import com.crown.graphic.gl.buffer.VerticesData;
 import com.crown.graphic.gl.shader.GlShaderProgram;
 import com.reine.client.TextureManager;
 import com.crown.graphic.unit.Mesh;
@@ -14,12 +15,14 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
 
 import static com.reine.world.chunk.IChunk.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class ChunkRenderer {
@@ -160,87 +163,17 @@ public class ChunkRenderer {
             return null;
         }
 
-        final IntBuffer faceB = MemoryUtil.memCallocInt(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 4); // vec3(normal x, normal y, normal z, texId)
-        final FloatBuffer posB = MemoryUtil.memCallocFloat(TRIANGLE_VERTICES * QUAD_TRIANGLES * quadsCount * 3); // vec3(x, y, z)
+        final int verticesCount = quadsCount * QUAD_TRIANGLES * TRIANGLE_VERTICES;
+        final int bytesCount = verticesCount * ChunkFormat.CHUNK_FORMAT.getStride();
+        final ByteBuffer vertexData = MemoryUtil.memAlloc(bytesCount);
 
-        for (ChunkQuad quad : quads) {
-            final Vector3f str = quad.start();
-            final Vector3f end = quad.end();
+        ChunkFormat.write(textureManager, quads, vertexData);
 
-            final WorldSide side = quad.side();
-            fillSideVertices(posB, side, str, end);
+        vertexData.flip();
+        final Mesh chunk = Mesh.of(GL_TRIANGLES, GL_STATIC_DRAW, new VerticesData(ChunkFormat.CHUNK_FORMAT, vertexData));
+        MemoryUtil.memFree(vertexData);
 
-            int texId = textureManager.getId(Block.byId(quad.blockId()).getTexture(side));
-            Vector3f normal = side.vec();
-
-            for (int i = 0; i < 6; i++) {
-                faceB.put(new int[] {(int) normal.x, (int) normal.y, (int) normal.z, texId});
-            }
-        }
-
-        return Mesh.triangles()
-                .positions(0, posB.flip(), 3, false)
-                .attribute(1, faceB.flip(), 4)
-                .build();
-    }
-
-    private void fillSideVertices(FloatBuffer posB, WorldSide side, Vector3f str, Vector3f end) {
-        switch (side) {
-            case WEST -> posB.put(new float[]{
-                    str.x, str.y, str.z,
-                    str.x, str.y, end.z,
-                    str.x, end.y, str.z,
-
-                    str.x, end.y, str.z,
-                    str.x, str.y, end.z,
-                    str.x, end.y, end.z,
-            });
-            case EAST -> posB.put(new float[]{
-                    str.x, str.y, str.z,
-                    str.x, end.y, str.z,
-                    str.x, str.y, end.z,
-
-                    str.x, str.y, end.z,
-                    str.x, end.y, str.z,
-                    str.x, end.y, end.z,
-            });
-            case DOWN -> posB.put(new float[]{
-                    str.x, str.y, str.z,
-                    end.x, str.y, str.z,
-                    str.x, str.y, end.z,
-
-                    str.x, str.y, end.z,
-                    end.x, str.y, str.z,
-                    end.x, str.y, end.z,
-            });
-            case UP -> posB.put(new float[]{
-                    str.x, str.y, str.z,
-                    str.x, str.y, end.z,
-                    end.x, str.y, str.z,
-
-                    end.x, str.y, str.z,
-                    str.x, str.y, end.z,
-                    end.x, str.y, end.z,
-            });
-            case NORTH -> posB.put(new float[]{
-                    end.x, str.y, str.z,
-                    str.x, str.y, str.z,
-                    str.x, end.y, str.z,
-
-                    end.x, str.y, str.z,
-                    str.x, end.y, str.z,
-                    end.x, end.y, str.z,
-            });
-            case SOUTH -> posB.put(new float[]{
-                    str.x, str.y, str.z,
-                    end.x, str.y, str.z,
-                    str.x, end.y, str.z,
-
-                    str.x, end.y, str.z,
-                    end.x, str.y, str.z,
-                    end.x, end.y, str.z,
-            });
-        }
+        return chunk;
     }
 
 }
