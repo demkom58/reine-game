@@ -65,7 +65,7 @@ public class Client extends CrownGame {
         mouse.setPositionCallback(this::onCursorMove);
         window.setFocusCallback(this::onFocus);
 
-        camera.setZFar(1500);
+        camera.setZFar(5000);
         camera.setAspect(400, 300);
         camera.moveY(-100);
 
