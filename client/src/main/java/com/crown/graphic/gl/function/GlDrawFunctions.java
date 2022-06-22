@@ -1,6 +1,6 @@
 package com.crown.graphic.gl.function;
 
-import com.crown.graphic.unit.Mesh;
+import com.crown.graphic.unit.SplitMesh;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
 
@@ -22,7 +22,7 @@ public final class GlDrawFunctions {
                     .put(color.x).put(color.y).put(color.z)
                     .put(color.x).put(color.y).put(color.z);
 
-            try (Mesh mesh = Mesh.builder(GL_LINES)
+            try (SplitMesh mesh = SplitMesh.builder(GL_LINES)
                     .positions(0, coords.flip(), 3, false)
                     .attribute(1, colors.flip(), 3, false)
                     .build()
@@ -46,7 +46,7 @@ public final class GlDrawFunctions {
                     .put(color.x).put(color.y).put(color.z)
                     .put(color.x).put(color.y).put(color.z);
 
-            try (Mesh mesh = Mesh.builder(GL_LINES)
+            try (SplitMesh mesh = SplitMesh.builder(GL_LINES)
                     .positions(0, coords.flip(), 3, false)
                     .attribute(1, colors.flip(), 3, false)
                     .build()

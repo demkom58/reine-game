@@ -3,21 +3,17 @@ package com.reine.client.render.chunk;
 import com.crown.graphic.camera.Camera;
 import com.crown.graphic.gl.buffer.VerticesData;
 import com.crown.graphic.gl.shader.GlShaderProgram;
+import com.crown.graphic.unit.ComposedMesh;
 import com.reine.client.TextureManager;
-import com.crown.graphic.unit.Mesh;
-import com.reine.block.Block;
+import com.crown.graphic.unit.SplitMesh;
 import com.reine.client.render.Renderer;
-import com.reine.util.WorldSide;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.ChunkPosition;
 import com.reine.world.chunk.IChunk;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.*;
 
 import static com.reine.world.chunk.IChunk.*;
@@ -123,7 +119,7 @@ public class ChunkRenderer {
     }
 
     private void renderSolid(GlShaderProgram program, RenderChunk chunk) {
-        Mesh solid = chunk.passes().get(RenderPass.SOLID);
+        ComposedMesh solid = chunk.passes().get(RenderPass.SOLID);
         if (solid == null) {
             return;
         }
@@ -135,7 +131,7 @@ public class ChunkRenderer {
     }
 
     private void renderTransparent(GlShaderProgram program, RenderChunk chunk) {
-        Mesh transparent = chunk.passes().get(RenderPass.TRANSPARENT);
+        ComposedMesh transparent = chunk.passes().get(RenderPass.TRANSPARENT);
         if (transparent == null) {
             return;
         }
@@ -157,7 +153,7 @@ public class ChunkRenderer {
         program.setUniformMatrix4fv(0, false, renderer.modelBuffer);
     }
 
-    public Mesh compileMesh(List<ChunkQuad> quads) {
+    public ComposedMesh compileMesh(List<ChunkQuad> quads) {
         final int quadsCount = quads.size();
         if (quadsCount == 0) {
             return null;
@@ -170,7 +166,7 @@ public class ChunkRenderer {
         ChunkFormat.write(textureManager, quads, vertexData);
 
         vertexData.flip();
-        final Mesh chunk = Mesh.of(GL_TRIANGLES, GL_STATIC_DRAW, new VerticesData(ChunkFormat.CHUNK_FORMAT, vertexData));
+        final ComposedMesh chunk = ComposedMesh.of(GL_TRIANGLES, GL_STATIC_DRAW, new VerticesData(ChunkFormat.CHUNK_FORMAT, vertexData));
         MemoryUtil.memFree(vertexData);
 
         return chunk;

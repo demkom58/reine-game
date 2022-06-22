@@ -1,11 +1,11 @@
 package com.reine.client.render.chunk;
 
-import com.crown.graphic.unit.Mesh;
+import com.crown.graphic.unit.ComposedMesh;
+import com.crown.graphic.unit.SplitMesh;
 import com.reine.util.Direction;
 import com.reine.util.WorldSide;
 import com.reine.world.chunk.IChunk;
 import org.joml.Vector3b;
-import org.joml.Vector3i;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
@@ -22,16 +22,16 @@ public class ChunkMesher {
         this.meshCompiler = meshCompiler;
     }
 
-    public EnumMap<RenderPass, Mesh> mesh(IChunk chunk, FaceChunk faceChunk) {
+    public EnumMap<RenderPass, ComposedMesh> mesh(IChunk chunk, FaceChunk faceChunk) {
         if (chunk.isEmpty()) {
             return new EnumMap<>(RenderPass.class);
         }
 
-        final EnumMap<RenderPass, Mesh> meshes = new EnumMap<>(RenderPass.class);
+        final EnumMap<RenderPass, ComposedMesh> meshes = new EnumMap<>(RenderPass.class);
         for (RenderPass pass : RenderPass.values()) {
             try (MemoryStack stack = MemoryStack.stackPush()) {
                 List<ChunkQuad> quads = greedyQuads(stack, chunk, faceChunk.getBuffer(pass));
-                Mesh mesh = meshCompiler.compile(quads);
+                ComposedMesh mesh = meshCompiler.compile(quads);
                 if (mesh != null) {
                     meshes.put(pass, mesh);
                 }
