@@ -2,8 +2,10 @@ package com.crown.graphic.gl.buffer;
 
 import com.crown.graphic.util.Destroyable;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
+
 import static org.lwjgl.opengl.GL31.*;
 
+import java.nio.*;
 import java.util.Set;
 
 public class GlBufferHeap implements Destroyable {
@@ -58,12 +60,28 @@ public class GlBufferHeap implements Destroyable {
         }
     }
 
-    public GlBufferSegment upload(int readTarget, int offset, int len) {
+    public GlBufferSegment copy(int readTarget, int offset, int len) {
         this.checkBufferBound();
         this.ensureCapacity(len);
 
         GlBufferSegment segment = this.alloc(len);
         glCopyBufferSubData(readTarget, GL_COPY_WRITE_BUFFER, offset, segment.getStart(), len);
+
+        return segment;
+    }
+
+    public GlBufferSegment upload(VerticesData vertices) {
+        return this.upload(vertices.buffer());
+    }
+
+    public GlBufferSegment upload(ByteBuffer buf) {
+        int len = buf.remaining();
+
+        this.checkBufferBound();
+        this.ensureCapacity(len);
+
+        GlBufferSegment segment = this.alloc(len);
+        glBufferSubData(GL_COPY_WRITE_BUFFER, segment.getStart(), buf);
 
         return segment;
     }

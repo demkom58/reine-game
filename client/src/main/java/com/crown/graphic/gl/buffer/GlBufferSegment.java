@@ -1,12 +1,12 @@
 package com.crown.graphic.gl.buffer;
 
 public class GlBufferSegment {
-    private final GlBufferHeap arena;
+    private final GlBufferHeap heap;
     private final int start;
     private final int len;
 
-    GlBufferSegment(GlBufferHeap arena, int start, int len) {
-        this.arena = arena;
+    GlBufferSegment(GlBufferHeap heap, int start, int len) {
+        this.heap = heap;
         this.start = start;
         this.len = len;
     }
@@ -19,11 +19,11 @@ public class GlBufferSegment {
         return this.len;
     }
 
-    public GlBufferHeap getArena() {
-        return this.arena;
+    public GlBufferHeap getHeap() {
+        return this.heap;
     }
 
     public void delete() {
-        this.arena.free(this);
+        this.heap.free(this);
     }
 }
