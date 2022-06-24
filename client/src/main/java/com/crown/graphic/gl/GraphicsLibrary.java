@@ -15,7 +15,7 @@ public final class GraphicsLibrary {
     private static final GLFWErrorCallback ERROR_CALLBACK = GLFWErrorCallback.create(GraphicsLibrary::printError);
 
     public static final int OPENGL_TARGET_VERSION_MAJOR = 4;
-    public static final int OPENGL_TARGET_VERSION_MINOR = 5;
+    public static final int OPENGL_TARGET_VERSION_MINOR = 6;
 
     public static void init() {
         setLogOnError();

@@ -91,17 +91,17 @@ public class Client extends CrownGame {
         chunkRenderer = new ChunkRenderer(renderer, textureManager);
 
         try (GlShader vertex = new GlShader(ShaderType.VERTEX, getClass().getResource("/shader/chunk.vsh"),
-                "#version 450 core");
+                "#version 460 core");
              GlShader fragment = new GlShader(ShaderType.FRAGMENT, getClass().getResource("/shader/chunk.fsh"),
-                     "#version 450 core",
+                     "#version 460 core",
                      "#define TEXTURES_COUNT " + textureManager.texturesCount())) {
             chunkShader = new GlShaderProgram(vertex, fragment);
         }
 
         try (GlShader vertex = new GlShader(ShaderType.VERTEX, getClass().getResource("/shader/simple.vsh"),
-                "#version 450 core");
+                "#version 460 core");
              GlShader fragment = new GlShader(ShaderType.FRAGMENT, getClass().getResource("/shader/simple.fsh"),
-                     "#version 450 core")) {
+                     "#version 460 core")) {
             simpleShader = new GlShaderProgram(vertex, fragment);
         }
 
