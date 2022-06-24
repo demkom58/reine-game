@@ -25,7 +25,6 @@ public record ComposedMesh(int mode, int vertexCount, GlVertexArray vao, GlMutab
         glDrawArrays(mode, 0, vertexCount);
     }
 
-    @Override
     public GlMutableBuffer[] vbos() {
         return new GlMutableBuffer[] {vbo};
     }
