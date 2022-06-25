@@ -258,8 +258,8 @@ public class Client extends CrownGame {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         chunkShader.use();
-        chunkShader.setUniformMatrix4fv(1, false, camera.toViewMatrix());
-        chunkShader.setUniformMatrix4fv(2, false, camera.toProjectionMatrix());
+        chunkShader.setUniformMatrix4fv(ChunkRenderer.VIEW_MATRIX_UNIFORM, false, camera.toViewMatrix());
+        chunkShader.setUniformMatrix4fv(ChunkRenderer.PROJECTION_MATRIX_UNIFORM, false, camera.toProjectionMatrix());
 
         Collection<IChunk> chunks = chunkGrid.loadedChunks();
         chunkRenderer.render(camera, chunkShader, chunks);

@@ -51,6 +51,11 @@ public class GlShaderProgram extends GlObject {
         }
     }
 
+    public void setUniform1i(int index, int value1) {
+        glUniform1i(index, value1);
+    }
+
+
     public void setUniform1i(String name, int value1) {
         glUniform1i(glGetUniformLocation(getHandle(), name), value1);
     }
@@ -62,6 +67,11 @@ public class GlShaderProgram extends GlObject {
     public void setUniform1iv(String name, int[] values) {
         glUniform1iv(glGetUniformLocation(getHandle(), name), values);
     }
+
+    public void setUniform2i(int index, int value1, int value2) {
+        glUniform2i(index, value1, value2);
+    }
+
 
     public void setUniform2i(String name, int value1, int value2) {
         glUniform2i(glGetUniformLocation(getHandle(), name), value1, value2);
@@ -79,6 +89,10 @@ public class GlShaderProgram extends GlObject {
         glUniform3i(glGetUniformLocation(getHandle(), name), value1, value2, value3);
     }
 
+    public void setUniform3i(int index, int value1, int value2, int value3) {
+        glUniform3i(index, value1, value2, value3);
+    }
+
     public void setUniform3iv(String name, IntBuffer values) {
         glUniform3iv(glGetUniformLocation(getHandle(), name), values);
     }
@@ -91,12 +105,20 @@ public class GlShaderProgram extends GlObject {
         glUniform4i(glGetUniformLocation(getHandle(), name), value1, value2, value3, value4);
     }
 
+    public void setUniform4i(int index, int value1, int value2, int value3, int value4) {
+        glUniform4i(index, value1, value2, value3, value4);
+    }
+
     public void setUniform4iv(String name, IntBuffer values) {
         glUniform4iv(glGetUniformLocation(getHandle(), name), values);
     }
 
     public void setUniform4iv(String name, int[] values) {
         glUniform4iv(glGetUniformLocation(getHandle(), name), values);
+    }
+
+    public float getUniformi(int index) {
+        return glGetUniformi(getHandle(), index);
     }
 
     public float getUniformi(String name) {
@@ -109,6 +131,10 @@ public class GlShaderProgram extends GlObject {
 
     public void getUniformiv(String name, IntBuffer output) {
         glGetUniformiv(getHandle(), glGetUniformLocation(getHandle(), name), output);
+    }
+
+    public void getUniformiv(int index, IntBuffer output) {
+        glGetUniformiv(getHandle(), index, output);
     }
 
     public void setUniform1f(String name, float value1) {

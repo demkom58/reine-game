@@ -6,7 +6,7 @@ import com.reine.client.TextureManager;
 import com.reine.client.render.chunk.ChunkFormat;
 import com.reine.client.render.chunk.util.FaceChunk;
 import com.reine.client.render.chunk.util.ChunkQuad;
-import com.reine.client.render.chunk.util.RenderPass;
+import com.reine.block.BlockLayer;
 import com.reine.util.Direction;
 import com.reine.util.WorldSide;
 import com.reine.world.chunk.IChunk;
@@ -33,13 +33,13 @@ public class ChunkMesher {
         this.textureManager = textureManager;
     }
 
-    public EnumMap<RenderPass, ComposedMesh> mesh(IChunk chunk, FaceChunk faceChunk) {
+    public EnumMap<BlockLayer, ComposedMesh> mesh(IChunk chunk, FaceChunk faceChunk) {
         if (chunk.isEmpty()) {
-            return new EnumMap<>(RenderPass.class);
+            return new EnumMap<>(BlockLayer.class);
         }
 
-        final EnumMap<RenderPass, ComposedMesh> meshes = new EnumMap<>(RenderPass.class);
-        for (RenderPass pass : RenderPass.values()) {
+        final EnumMap<BlockLayer, ComposedMesh> meshes = new EnumMap<>(BlockLayer.class);
+        for (BlockLayer pass : BlockLayer.values()) {
             try (MemoryStack stack = MemoryStack.stackPush()) {
                 List<ChunkQuad> quads = greedyQuads(stack, chunk, faceChunk.getBuffer(pass));
                 ComposedMesh mesh = compileMesh(quads);

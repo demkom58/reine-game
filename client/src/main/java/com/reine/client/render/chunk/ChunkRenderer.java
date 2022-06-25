@@ -8,11 +8,12 @@ import com.reine.client.render.Renderer;
 import com.reine.client.render.chunk.mesh.ChunkMesher;
 import com.reine.client.render.chunk.mesh.RenderChunk;
 import com.reine.client.render.chunk.util.FaceChunk;
-import com.reine.client.render.chunk.util.RenderPass;
+import com.reine.block.BlockLayer;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.ChunkPosition;
 import com.reine.world.chunk.IChunk;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -21,6 +22,11 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class ChunkRenderer {
+    public static final int MODEL_MATRIX_UNIFORM = 0;
+    public static final int VIEW_MATRIX_UNIFORM = 1;
+    public static final int PROJECTION_MATRIX_UNIFORM = 2;
+    public static final int ALPHA_THRESHOLD_UNIFORM = 3;
+
     private final Renderer renderer;
     private final TextureManager textureManager;
     private final ChunkMesher mesher;
@@ -92,20 +98,30 @@ public class ChunkRenderer {
                 toRender.add(renderChunks.get(ChunkPosition.fromChunk(chunk)));
             }
         }
-//        System.out.println("Chunks to render: " + toRender.size());
+
+        Vector3f currentChunk = new Vector3f(camera.getPosition()).div(CHUNK_WIDTH);
+        toRender.sort(Comparator.comparingInt(k -> Math.round(currentChunk.distanceSquared(k.x(), k.y(), k.z()))));
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-
-        for (RenderChunk chunk : toRender) {
-            renderSolid(program, chunk);
+        for (int i = toRender.size() - 1; i >= 0; i--) {
+            final RenderChunk chunk = toRender.get(i);
+            renderLayer(program, chunk, BlockLayer.SOLID);
         }
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
-        for (RenderChunk chunk : toRender) {
-            renderTransparent(program, chunk);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        program.setUniform1f(ALPHA_THRESHOLD_UNIFORM, 0.5f);
+        for (int i = toRender.size() - 1; i >= 0; i--) {
+            renderLayer(program, toRender.get(i), BlockLayer.OPAQUE);
         }
+        program.setUniform1f(ALPHA_THRESHOLD_UNIFORM, 0);
+
+        glDepthMask(false);
+        for (int i = toRender.size() - 1; i >= 0; i--) {
+            renderLayer(program, toRender.get(i), BlockLayer.TRANSPARENT);
+        }
+        glDepthMask(true);
         glDisable(GL_BLEND);
 
         glDisable(GL_CULL_FACE);
@@ -114,8 +130,8 @@ public class ChunkRenderer {
         glBindVertexArray(0);
     }
 
-    private void renderSolid(GlShaderProgram program, RenderChunk chunk) {
-        ComposedMesh solid = chunk.passes().get(RenderPass.SOLID);
+    private void renderLayer(GlShaderProgram program, RenderChunk chunk, BlockLayer layer) {
+        ComposedMesh solid = chunk.passes().get(layer);
         if (solid == null) {
             return;
         }
@@ -126,18 +142,6 @@ public class ChunkRenderer {
         solid.draw();
     }
 
-    private void renderTransparent(GlShaderProgram program, RenderChunk chunk) {
-        ComposedMesh transparent = chunk.passes().get(RenderPass.TRANSPARENT);
-        if (transparent == null) {
-            return;
-        }
-
-        setChunkPosition(program, chunk);
-
-        transparent.bind();
-        transparent.draw();
-    }
-
     private void setChunkPosition(GlShaderProgram program, RenderChunk chunk) {
         renderer.oneMainMatrix
                 .translate(
@@ -146,6 +150,6 @@ public class ChunkRenderer {
                         chunk.z() * CHUNK_LENGTH,
                         renderer.modelMatrix
                 ).get(renderer.modelBuffer);
-        program.setUniformMatrix4fv(0, false, renderer.modelBuffer);
+        program.setUniformMatrix4fv(MODEL_MATRIX_UNIFORM, false, renderer.modelBuffer);
     }
 }

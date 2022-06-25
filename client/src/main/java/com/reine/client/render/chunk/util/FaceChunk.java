@@ -1,6 +1,7 @@
 package com.reine.client.render.chunk.util;
 
 import com.crown.graphic.util.Destroyable;
+import com.reine.block.BlockLayer;
 import com.reine.util.WorldSide;
 import com.reine.block.Block;
 import com.reine.world.chunk.ChunkGrid;
@@ -15,19 +16,20 @@ import java.util.Map;
 import static com.reine.world.chunk.IChunk.*;
 
 public class FaceChunk implements Destroyable {
-    private final EnumMap<RenderPass, ByteBuffer> passBuffers = new EnumMap<>(Map.of(
-            RenderPass.SOLID, MemoryUtil.memCalloc(CHUNK_SIZE),
-            RenderPass.TRANSPARENT, MemoryUtil.memCalloc(CHUNK_SIZE)
+    private final EnumMap<BlockLayer, ByteBuffer> passBuffers = new EnumMap<>(Map.of(
+            BlockLayer.SOLID, MemoryUtil.memCalloc(CHUNK_SIZE),
+            BlockLayer.OPAQUE, MemoryUtil.memCalloc(CHUNK_SIZE),
+            BlockLayer.TRANSPARENT, MemoryUtil.memCalloc(CHUNK_SIZE)
     ));
 
     public void singleUpdate(ChunkGrid grid, IChunk chunk, int x, int y, int z) {
-        for (RenderPass pass : RenderPass.values()) {
+        for (BlockLayer pass : BlockLayer.values()) {
             updateBlock(pass, grid, chunk, x, y, z, passBuffers.get(pass));
         }
     }
 
     public void update(ChunkGrid grid, IChunk chunk, int x, int y, int z) {
-        for (RenderPass pass : RenderPass.values()) {
+        for (BlockLayer pass : BlockLayer.values()) {
             final ByteBuffer passBuffer = passBuffers.get(pass);
             updateBlock(pass, grid, chunk, x, y, z, passBuffer);
             updateBlock(pass, grid, chunk, x + 1, y, z, passBuffer);
@@ -39,7 +41,7 @@ public class FaceChunk implements Destroyable {
         }
     }
 
-    public ByteBuffer getBuffer(RenderPass pass) {
+    public ByteBuffer getBuffer(BlockLayer pass) {
         return passBuffers.get(pass);
     }
 
@@ -51,7 +53,7 @@ public class FaceChunk implements Destroyable {
     public static FaceChunk build(ChunkGrid grid, IChunk chunk) {
         final FaceChunk faceChunk = new FaceChunk();
 
-        for (RenderPass pass : RenderPass.values()) {
+        for (BlockLayer pass : BlockLayer.values()) {
             final ByteBuffer buffer = faceChunk.getBuffer(pass);
 
             for (int x = 0; x < CHUNK_WIDTH; x++) {
@@ -66,7 +68,7 @@ public class FaceChunk implements Destroyable {
         return faceChunk;
     }
 
-    private static void updateBlock(RenderPass pass, ChunkGrid grid, IChunk chunk, int x, int y, int z, ByteBuffer buffer) {
+    private static void updateBlock(BlockLayer pass, ChunkGrid grid, IChunk chunk, int x, int y, int z, ByteBuffer buffer) {
         int index = IChunk.idx(x, y, z);
         int blockId = chunk.getBlockId(index);
         if (blockId == 0) {
@@ -75,14 +77,13 @@ public class FaceChunk implements Destroyable {
         }
 
         final Block block = Block.byId(blockId);
-        final boolean transparent = block.isTransparent();
-        if ((pass == RenderPass.SOLID && !transparent) || (pass == RenderPass.TRANSPARENT && transparent)) {
+        if (pass == block.getLayer()) {
             byte sidesMask = 0b000000;
 
             // fill visibility of all sides for current block
             for (WorldSide side : WorldSide.values()) {
                 final Block neighbor = getNeighborBlock(grid, chunk, x, y, z, side);
-                if (block != neighbor && neighbor.isTransparent()) {
+                if (!neighbor.isFullBlock() || (block != neighbor && neighbor.getLayer() != pass)) {
                     sidesMask |= side.mask();
                 }
             }

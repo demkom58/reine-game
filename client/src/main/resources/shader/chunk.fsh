@@ -11,12 +11,19 @@ in flat int Texture;
 
 out vec4 FragColor;
 
+layout(location = 3) uniform float uAlphaThreshold;
+
 void main() {
     float u = dot(Face.yxz, Pos.xzx);
     float v = dot(Face.yxz, Pos.zyy);
     vec2 tileUV = fract(abs(vec2(u, v)));
 
     sampler2D sampler = sampler2D(tex_handles[Texture]);
+    vec4 texel = texture(sampler, tileUV);
 
-    FragColor = texture(sampler, tileUV);
+    if (texel.a < uAlphaThreshold) {
+        discard;
+    }
+
+    FragColor = texel;
 }
