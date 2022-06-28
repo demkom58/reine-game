@@ -18,7 +18,6 @@ import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.IChunk;
 import org.jetbrains.annotations.NotNull;
 import org.jglrxavpok.hephaistos.mca.AnvilException;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.io.File;
@@ -31,10 +30,6 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL33.*;
 
 public class Client extends CrownGame {
-    private static final String[] REQUIRED_EXTENSIONS = {
-            "GL_ARB_gpu_shader_int64",
-            "GL_ARB_bindless_texture",
-    };
 
     GlShaderProgram chunkShader;
     GlShaderProgram simpleShader;
@@ -51,7 +46,7 @@ public class Client extends CrownGame {
     public Client() {
         super(400, 300, "Reine");
 
-        Set<String> notSupported = GraphicsLibrary.isNotSupportedExtensions(REQUIRED_EXTENSIONS);
+        Set<String> notSupported = GraphicsLibrary.isNotSupportedExtensions();
         if (!notSupported.isEmpty()) {
             throw new Error("Platform not supports extensions: " + String.join(", ", notSupported));
         }
@@ -91,10 +86,12 @@ public class Client extends CrownGame {
         chunkRenderer = new ChunkRenderer(renderer, textureManager);
 
         try (GlShader vertex = new GlShader(ShaderType.VERTEX, getClass().getResource("/shader/chunk.vsh"),
-                "#version 460 core");
+                "#version 460 core",
+                "#define BATCH_CHUNK_COUNT " + RenderChunk.RENDER_CHUNK_SIZE);
              GlShader fragment = new GlShader(ShaderType.FRAGMENT, getClass().getResource("/shader/chunk.fsh"),
                      "#version 460 core",
-                     "#define TEXTURES_COUNT " + textureManager.texturesCount())) {
+                     "#define TEXTURES_COUNT " + textureManager.texturesCount()
+             )) {
             chunkShader = new GlShaderProgram(vertex, fragment);
         }
 
@@ -105,12 +102,11 @@ public class Client extends CrownGame {
             simpleShader = new GlShaderProgram(vertex, fragment);
         }
 
-
         File save = new File("saves/Drehmal v2.1.1 PRIMORDIAL");
         try (AnvilLoader anvilLoader = new AnvilLoader(save, Block.AIR)) {
-            for (int x = -10; x < 10; x++) {
+            for (int x = -20; x < 20; x++) {
                 for (int y = 0; y < 8; y++) {
-                    for (int z = -10; z < 10; z++) {
+                    for (int z = -20; z < 20; z++) {
                         try {
                             IChunk iChunk = anvilLoader.loadChunk(x, y, z);
                             chunkGrid.setChunk(x, y, z, iChunk);
@@ -133,15 +129,14 @@ public class Client extends CrownGame {
 
         chunkGrid.loadedChunks().forEach(c -> chunkRenderer.setChunk(chunkGrid, c));
 
-        List<RenderChunk> renderChunks = chunkRenderer.getRenderChunks(notEmpty);
+        Set<RenderChunk> renderChunks = chunkRenderer.getRenderChunks(notEmpty);
         int drawCalls = renderChunks.stream().mapToInt(c -> c.passes().size()).sum();
-        System.out.println("Draw calls: " + drawCalls);
+        System.out.println("Draw Calls: " + drawCalls + "; Render Chunks: " + renderChunks.size());
 
         loop();
     }
 
     float cosTime;
-    Quaternionf modelRotation = new Quaternionf();
     UpdateCounter updateCounter;
 
     private void loop() {
@@ -246,9 +241,6 @@ public class Client extends CrownGame {
     private void update() {
         double t = System.currentTimeMillis() / 1000d;
         cosTime = (float) Math.cos(t);
-
-        float r = cosTime / 50f;
-        modelRotation.rotateXYZ(r, (float) Math.cos(r) / 50f, r);
     }
 
     private void render() {

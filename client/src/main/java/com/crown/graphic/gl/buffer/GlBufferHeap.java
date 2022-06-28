@@ -31,6 +31,7 @@ public class GlBufferHeap implements Destroyable {
     }
 
     private void resize(int size) {
+        System.out.println("Resize buffer heap to " + size);
         GlBuffer src = this.vertexBuffer;
         src.unbind(GL_COPY_WRITE_BUFFER);
 
@@ -65,7 +66,7 @@ public class GlBufferHeap implements Destroyable {
         this.ensureCapacity(len);
 
         GlBufferSegment segment = this.alloc(len);
-        glCopyBufferSubData(readTarget, GL_COPY_WRITE_BUFFER, offset, segment.getStart(), len);
+        glCopyBufferSubData(readTarget, GL_COPY_WRITE_BUFFER, offset, segment.start(), len);
 
         return segment;
     }
@@ -81,7 +82,7 @@ public class GlBufferHeap implements Destroyable {
         this.ensureCapacity(len);
 
         GlBufferSegment segment = this.alloc(len);
-        glBufferSubData(GL_COPY_WRITE_BUFFER, segment.getStart(), buf);
+        glBufferSubData(GL_COPY_WRITE_BUFFER, segment.start(), buf);
 
         return segment;
     }
@@ -123,11 +124,11 @@ public class GlBufferHeap implements Destroyable {
         GlBufferSegment bestSegment = null;
 
         for (GlBufferSegment segment : this.freeRegions) {
-            if (segment.getLength() < len) {
+            if (segment.len() < len) {
                 continue;
             }
 
-            if (bestSegment == null || bestSegment.getLength() > segment.getLength()) {
+            if (bestSegment == null || bestSegment.len() > segment.len()) {
                 bestSegment = segment;
             }
         }
@@ -138,13 +139,13 @@ public class GlBufferHeap implements Destroyable {
 
         this.freeRegions.remove(bestSegment);
 
-        int excess = bestSegment.getLength() - len;
+        int excess = bestSegment.len() - len;
 
         if (excess > 0) {
-            this.freeRegions.add(new GlBufferSegment(this, bestSegment.getStart() + len, excess));
+            this.freeRegions.add(new GlBufferSegment(this, bestSegment.start() + len, excess));
         }
 
-        return new GlBufferSegment(this, bestSegment.getStart(), len);
+        return new GlBufferSegment(this, bestSegment.start(), len);
     }
 
     @Override

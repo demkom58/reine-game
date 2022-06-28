@@ -33,23 +33,23 @@ public class ChunkMesher {
         this.textureManager = textureManager;
     }
 
-    public EnumMap<BlockLayer, ComposedMesh> mesh(IChunk chunk, FaceChunk faceChunk) {
+    public LayeredVertices mesh(IChunk chunk, FaceChunk faceChunk) {
         if (chunk.isEmpty()) {
-            return new EnumMap<>(BlockLayer.class);
+            return LayeredVertices.EMPTY;
         }
 
-        final EnumMap<BlockLayer, ComposedMesh> meshes = new EnumMap<>(BlockLayer.class);
+        final EnumMap<BlockLayer, VerticesData> meshes = new EnumMap<>(BlockLayer.class);
         for (BlockLayer pass : BlockLayer.values()) {
             try (MemoryStack stack = MemoryStack.stackPush()) {
                 List<ChunkQuad> quads = greedyQuads(stack, chunk, faceChunk.getBuffer(pass));
-                ComposedMesh mesh = compileMesh(quads);
+                VerticesData mesh = compileMesh(quads);
                 if (mesh != null) {
                     meshes.put(pass, mesh);
                 }
             }
         }
 
-        return meshes;
+        return new LayeredVertices(meshes);
     }
 
     private List<ChunkQuad> simpleQuads(MemoryStack stack, IChunk chunk, ByteBuffer culledFaces) {
@@ -240,7 +240,7 @@ public class ChunkMesher {
         return meshes;
     }
 
-    public ComposedMesh compileMesh(List<ChunkQuad> quads) {
+    public VerticesData compileMesh(List<ChunkQuad> quads) {
         final int quadsCount = quads.size();
         if (quadsCount == 0) {
             return null;
@@ -248,15 +248,12 @@ public class ChunkMesher {
 
         final int verticesCount = quadsCount * QUAD_TRIANGLES * TRIANGLE_VERTICES;
         final int bytesCount = verticesCount * ChunkFormat.CHUNK_FORMAT.getStride();
+
         final ByteBuffer vertexData = MemoryUtil.memAlloc(bytesCount);
-
         ChunkFormat.write(textureManager, quads, vertexData);
-
         vertexData.flip();
-        final ComposedMesh chunk = ComposedMesh.of(GL_TRIANGLES, GL_STATIC_DRAW, new VerticesData(ChunkFormat.CHUNK_FORMAT, vertexData));
-        MemoryUtil.memFree(vertexData);
 
-        return chunk;
+        return new VerticesData(ChunkFormat.CHUNK_FORMAT, vertexData);
     }
 
     private static boolean isSideVisible(ByteBuffer masks, int idx, WorldSide side) {

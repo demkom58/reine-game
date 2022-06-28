@@ -2,7 +2,7 @@ package com.reine.client.render.chunk;
 
 import com.crown.graphic.camera.Camera;
 import com.crown.graphic.gl.shader.GlShaderProgram;
-import com.crown.graphic.unit.ComposedMesh;
+import com.crown.graphic.unit.BatchMesh;
 import com.reine.client.TextureManager;
 import com.reine.client.render.Renderer;
 import com.reine.client.render.chunk.mesh.ChunkMesher;
@@ -22,17 +22,18 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class ChunkRenderer {
-    public static final int MODEL_MATRIX_UNIFORM = 0;
-    public static final int VIEW_MATRIX_UNIFORM = 1;
-    public static final int PROJECTION_MATRIX_UNIFORM = 2;
-    public static final int ALPHA_THRESHOLD_UNIFORM = 3;
+    public static final int MODEL_UBO = 0;
+    public static final int VIEW_MATRIX_UNIFORM = 0;
+    public static final int PROJECTION_MATRIX_UNIFORM = 1;
+    public static final int ALPHA_THRESHOLD_UNIFORM = 2;
 
     private final Renderer renderer;
     private final TextureManager textureManager;
     private final ChunkMesher mesher;
 
     private final Map<ChunkPosition, FaceChunk> facedChunks = new HashMap<>();
-    private final Map<ChunkPosition, RenderChunk> renderChunks = new HashMap<>();
+
+    private final Map<RenderChunk.Position, RenderChunk> renderChunks = new HashMap<>();
 
 
     public ChunkRenderer(Renderer renderer, TextureManager textureManager) {
@@ -46,61 +47,72 @@ public class ChunkRenderer {
     }
 
     public void setChunk(ChunkGrid grid, ChunkPosition position, IChunk chunk) {
-        FaceChunk newFacedChunk = chunk != null
-                ? FaceChunk.build(grid, chunk)
-                : null;
+        RenderChunk.Position batchPos = RenderChunk.Position.from(position);
+        if (chunk == null) {
+            FaceChunk remove = this.facedChunks.remove(position);
+            if (remove != null) {
+                remove.destroy();
+            }
 
-        RenderChunk renderChunk = null;
-        if (newFacedChunk != null) {
-            renderChunk = new RenderChunk(chunk.getX(), chunk.getY(), chunk.getZ(), this.mesher.mesh(chunk, newFacedChunk));
+            RenderChunk renderChunk = renderChunks.get(batchPos);
+            if (renderChunk != null) {
+                renderChunk.setChunk(position, null);
+            }
+
+            return;
+        }
+
+        FaceChunk newFacedChunk = FaceChunk.build(grid, chunk);
+        RenderChunk renderChunk = renderChunks.computeIfAbsent(batchPos, RenderChunk::from);
+
+        try (var result = this.mesher.mesh(chunk, newFacedChunk)) {
+            renderChunk.setChunk(position, result.vertices());
         }
 
         FaceChunk oldFacedChunk = this.facedChunks.put(position, newFacedChunk);
-        RenderChunk oldRenderChunk = this.renderChunks.put(position, renderChunk);
-
         if (oldFacedChunk != null) {
             oldFacedChunk.destroy();
         }
-
-        if (oldRenderChunk != null) {
-            oldRenderChunk.destroy();
-        }
     }
 
-    public void updateBlock(ChunkGrid grid, ChunkPosition position, IChunk chunk, int x, int y, int z) {
-        FaceChunk faceChunk = facedChunks.get(position);
-        faceChunk.update(grid, chunk, x, y, z);
+//    public void updateBlock(ChunkGrid grid, ChunkPosition position, IChunk chunk, int x, int y, int z) {
+//        FaceChunk faceChunk = facedChunks.get(position);
+//        faceChunk.update(grid, chunk, x, y, z);
+//
+//        final RenderChunk newChunk = new RenderChunk(x, y, z, mesher.mesh(chunk, faceChunk));
+//        final RenderChunk oldChunk = renderChunks.put(position, newChunk);
+//
+//        if (oldChunk != null) {
+//            oldChunk.destroy();
+//        }
+//    }
 
-        final RenderChunk newChunk = new RenderChunk(x, y, z, mesher.mesh(chunk, faceChunk));
-        final RenderChunk oldChunk = renderChunks.put(position, newChunk);
-
-        if (oldChunk != null) {
-            oldChunk.destroy();
-        }
-    }
-
-    public List<RenderChunk> getRenderChunks(Collection<IChunk> chunks) {
-        final List<RenderChunk> toRender = new ArrayList<>(chunks.size());
+    public Set<RenderChunk> getRenderChunks(Collection<IChunk> chunks) {
+        final Set<RenderChunk> toRender = new HashSet<>(chunks.size());
         for (IChunk chunk : chunks) {
-            toRender.add(renderChunks.get(ChunkPosition.fromChunk(chunk)));
+            toRender.add(renderChunks.get(RenderChunk.Position.from(chunk)));
         }
         return toRender;
     }
 
     public void render(Camera camera, GlShaderProgram program, Collection<IChunk> chunks) {
-        final List<RenderChunk> toRender = new ArrayList<>(chunks.size());
+        final Collection<RenderChunk> uniqueChunks = new HashSet<>(chunks.size());
         for (IChunk chunk : chunks) {
             int x = chunk.getX() * CHUNK_WIDTH;
             int y = chunk.getY() * CHUNK_HEIGHT;
             int z = chunk.getZ() * CHUNK_LENGTH;
 
-            if (camera.isBoxInFrustum(x, y, z, CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_LENGTH)) {
-                toRender.add(renderChunks.get(ChunkPosition.fromChunk(chunk)));
+            if (camera.isBoxInFrustum(x, y, z, CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_LENGTH) && !chunk.isEmpty()) {
+                uniqueChunks.add(renderChunks.get(RenderChunk.Position.from(chunk)));
             }
         }
 
-        Vector3f currentChunk = new Vector3f(camera.getPosition()).div(CHUNK_WIDTH);
-        toRender.sort(Comparator.comparingInt(k -> Math.round(currentChunk.distanceSquared(k.x(), k.y(), k.z()))));
+        List<RenderChunk> toRender = new ArrayList<>(uniqueChunks);
+        Vector3f currentChunk = new Vector3f(camera.getPosition()).div(RenderChunk.CHUNKS_GROUP_AXIS_SIZE);
+        toRender.sort(Comparator.comparingInt(k -> {
+            RenderChunk.Position p = k.pos();
+            return Math.round(currentChunk.distanceSquared(p.x(), p.y(), p.z()));
+        }));
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
@@ -131,25 +143,13 @@ public class ChunkRenderer {
     }
 
     private void renderLayer(GlShaderProgram program, RenderChunk chunk, BlockLayer layer) {
-        ComposedMesh solid = chunk.passes().get(layer);
-        if (solid == null) {
+        BatchMesh mesh = chunk.passes().get(layer);
+        if (mesh == null) {
             return;
         }
 
-        setChunkPosition(program, chunk);
-
-        solid.bind();
-        solid.draw();
-    }
-
-    private void setChunkPosition(GlShaderProgram program, RenderChunk chunk) {
-        renderer.oneMainMatrix
-                .translate(
-                        chunk.x() * CHUNK_WIDTH,
-                        chunk.y() * CHUNK_HEIGHT,
-                        chunk.z() * CHUNK_LENGTH,
-                        renderer.modelMatrix
-                ).get(renderer.modelBuffer);
-        program.setUniformMatrix4fv(MODEL_MATRIX_UNIFORM, false, renderer.modelBuffer);
+        chunk.bindUniform(layer);
+        mesh.bind();
+        mesh.draw();
     }
 }

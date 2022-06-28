@@ -1,11 +1,12 @@
 package com.crown.graphic.gl.buffer;
 
 import com.crown.memory.BufferBuilder;
-import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
 
-import static org.lwjgl.opengl.GL45.*;
+import static org.lwjgl.opengl.GL31.GL_COPY_WRITE_BUFFER;
+import static org.lwjgl.opengl.GL45.GL_DRAW_INDIRECT_BUFFER;
 
 public class GlDrawCmdBuffer extends GlMutableBuffer {
     private static final int COMMAND_STRUCT_BYTES = 4 * 4;
@@ -23,8 +24,9 @@ public class GlDrawCmdBuffer extends GlMutableBuffer {
     }
 
     public void setIndirectDrawCall(int idx, int first, int count, int baseInstance, int instanceCount) {
-        try (MemoryStack stack = MemoryStack.stackGet()) {
-            ByteBuffer buf = stack.malloc(COMMAND_STRUCT_BYTES);
+        ByteBuffer buf = null;
+        try {
+            buf = MemoryUtil.memAlloc(COMMAND_STRUCT_BYTES);
 
             buf.putInt(count);         // Vertex Count
             buf.putInt(instanceCount); // Instance Count
@@ -32,7 +34,13 @@ public class GlDrawCmdBuffer extends GlMutableBuffer {
             buf.putInt(baseInstance);  // Base Instance
 
             int writeOffset = COMMAND_STRUCT_BYTES * idx;
-            upload(GL_DRAW_INDIRECT_BUFFER, writeOffset, buf);
+            bind(GL_COPY_WRITE_BUFFER);
+            upload(GL_COPY_WRITE_BUFFER, writeOffset, buf.flip());
+            unbind(GL_COPY_WRITE_BUFFER);
+        } finally {
+            if (buf != null) {
+                MemoryUtil.memFree(buf);
+            }
         }
     }
 
@@ -67,6 +75,16 @@ public class GlDrawCmdBuffer extends GlMutableBuffer {
             this.count++;
         }
 
+        public void setIndirectDrawCall(int index, int first, int count, int baseInstance, int instanceCount) {
+            ByteBuffer buf = this.buffer;
+
+            final int writeOffset = COMMAND_STRUCT_BYTES * index;
+            buf.putInt(writeOffset, count);                    // Vertex Count
+            buf.putInt(writeOffset + 4, instanceCount);  // Instance Count
+            buf.putInt(writeOffset + 8, first);          // Vertex Start
+            buf.putInt(writeOffset + 12, baseInstance);  // Base Instance
+        }
+
         public int getCapacity() {
             return capacity;
         }
@@ -74,11 +92,10 @@ public class GlDrawCmdBuffer extends GlMutableBuffer {
         public GlDrawCmdBuffer build(int hints) {
             GlDrawCmdBuffer result = new GlDrawCmdBuffer(hints);
             result.bind();
-            result.upload(GL_DRAW_INDIRECT_BUFFER, this.buffer);
+            result.upload(GL_DRAW_INDIRECT_BUFFER, this.buffer.limit(writeOffset));
             result.unbind();
             return result;
         }
     }
-
 
 }

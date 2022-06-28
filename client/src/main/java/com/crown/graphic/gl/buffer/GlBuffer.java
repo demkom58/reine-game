@@ -4,7 +4,6 @@ import com.crown.graphic.gl.GlObject;
 
 import java.nio.*;
 
-import static org.lwjgl.opengl.ARBUniformBufferObject.GL_UNIFORM_BUFFER;
 import static org.lwjgl.opengl.GL31.*;
 
 public abstract class GlBuffer extends GlObject {

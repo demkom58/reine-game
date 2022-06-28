@@ -11,7 +11,7 @@ in flat int Texture;
 
 out vec4 FragColor;
 
-layout(location = 3) uniform float uAlphaThreshold;
+layout(location = 2) uniform float uAlphaThreshold;
 
 void main() {
     float u = dot(Face.yxz, Pos.xzx);
