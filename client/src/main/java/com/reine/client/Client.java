@@ -1,22 +1,16 @@
 package com.reine.client;
 
-import com.crown.graphic.CrownGame;
-import com.crown.graphic.gl.GraphicsLibrary;
 import com.crown.graphic.gl.shader.GlShader;
 import com.crown.graphic.gl.shader.GlShaderProgram;
 import com.crown.graphic.gl.shader.ShaderType;
-import com.crown.input.keyboard.Keyboard;
-import com.crown.input.mouse.Mouse;
-import com.crown.output.window.Window;
-import com.crown.util.UpdateCounter;
 import com.reine.block.Block;
 import com.reine.client.render.Renderer;
 import com.reine.client.render.chunk.ChunkRenderer;
 import com.reine.client.render.chunk.mesh.RenderChunk;
 import com.reine.client.save.minecaft.anvil.AnvilLoader;
+import com.reine.client.util.ReineGame;
 import com.reine.world.chunk.ChunkGrid;
 import com.reine.world.chunk.IChunk;
-import org.jetbrains.annotations.NotNull;
 import org.jglrxavpok.hephaistos.mca.AnvilException;
 import org.joml.Vector3f;
 
@@ -29,13 +23,10 @@ import java.util.Set;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL33.*;
 
-public class Client extends CrownGame {
+public class Client extends ReineGame {
 
     GlShaderProgram chunkShader;
     GlShaderProgram simpleShader;
-
-    Mouse mouse;
-    Keyboard keyboard;
 
     Renderer renderer = new Renderer();
     TextureManager textureManager = new TextureManager();
@@ -44,29 +35,12 @@ public class Client extends CrownGame {
     ChunkGrid chunkGrid = new ChunkGrid();
 
     public Client() {
-        super(400, 300, "Reine");
-
-        Set<String> notSupported = GraphicsLibrary.isNotSupportedExtensions();
-        if (!notSupported.isEmpty()) {
-            throw new Error("Platform not supports extensions: " + String.join(", ", notSupported));
-        }
-
-        mouse = new Mouse(window);
-        keyboard = new Keyboard(window);
-
-        GraphicsLibrary.enableMultiSampling();
-        GraphicsLibrary.reversZDepth();
-
-        mouse.setPositionCallback(this::onCursorMove);
-        window.setFocusCallback(this::onFocus);
-
+        super(400, 300, "Reine", 60, 30);
         camera.setZFar(5000);
-        camera.setAspect(400, 300);
         camera.moveY(-100);
-
-        window.setSampling(GLFW_SAMPLES, 4);
     }
 
+    @Override
     public void start() throws RuntimeException {
         File texturesDirectory = new File("assets/textures/");
         File[] textures = texturesDirectory.listFiles();
@@ -104,9 +78,9 @@ public class Client extends CrownGame {
 
         File save = new File("saves/Drehmal v2.1.1 PRIMORDIAL");
         try (AnvilLoader anvilLoader = new AnvilLoader(save, Block.AIR)) {
-            for (int x = -20; x < 20; x++) {
+            for (int x = -3; x < 3; x++) {
                 for (int y = 0; y < 8; y++) {
-                    for (int z = -20; z < 20; z++) {
+                    for (int z = -3; z < 3; z++) {
                         try {
                             IChunk iChunk = anvilLoader.loadChunk(x, y, z);
                             chunkGrid.setChunk(x, y, z, iChunk);
@@ -133,33 +107,25 @@ public class Client extends CrownGame {
         int drawCalls = renderChunks.stream().mapToInt(c -> c.passes().size()).sum();
         System.out.println("Draw Calls: " + drawCalls + "; Render Chunks: " + renderChunks.size());
 
-        loop();
-    }
-
-    float cosTime;
-    UpdateCounter updateCounter;
-
-    private void loop() {
-        updateCounter = new UpdateCounter(c ->
-                System.out.println(c.getAverageTime() + "ms/frame ~ " + c.getUpdates() + " fps"));
-
         window.show();
         window.focus();
-
-        while (!window.isShouldClose()) {
-            updateCounter.update();
-
-            handleInput();
-            update();
-            render();
-        }
+        super.start();
     }
 
     private final Vector3f front = new Vector3f(0.0f, 0.0f, -1.0f);
     private final Vector3f up = new Vector3f(0.0f, 1.0f, 0.0f);
     private final Vector3f velocity = new Vector3f();
 
-    private void handleInput() {
+    private long lastPrint = 0;
+
+    @Override
+    public void input() {
+        if (lastPrint + 1000 < System.currentTimeMillis()) {
+            System.out.println(gameLoop.getFps() + " fps, " + gameLoop.getUps() + " ups");
+            lastPrint = System.currentTimeMillis();
+        }
+
+        super.input();
 
         float rotZ = 0.0f;
         float rotY = 0.0f;
@@ -214,36 +180,19 @@ public class Client extends CrownGame {
             rotX -= 0.1f;
         }
 
-        if (keyboard.isKeyDown(GLFW_KEY_ESCAPE)) {
-            window.setShouldClose(true);
-        }
-
-        if (keyboard.isKeyDown(GLFW_KEY_LEFT_ALT)) {
-            mouse.ungrabMouseCursor();
-        }
-
         camera.rotate(rotX, rotY, rotZ);
     }
 
-    public void onCursorMove(@NotNull Window window, double x, double y) {
-        camera.rotate((float) mouse.getDeltaX() / 300f, (float) mouse.getDeltaY() / -300f, 0f);
-    }
+    float cosTime;
 
-    public void onFocus(@NotNull Window window, boolean focused) {
-        if (focused) {
-            mouse.grabMouseCursor();
-        } else {
-            mouse.setCursorInCenter();
-            mouse.ungrabMouseCursor();
-        }
-    }
-
-    private void update() {
+    @Override
+    public void update() {
         double t = System.currentTimeMillis() / 1000d;
         cosTime = (float) Math.cos(t);
     }
 
-    private void render() {
+    @Override
+    public void render(float delta) {
         camera.update();
 
         glClearColor(cosTime, cosTime, cosTime, 1.0f);
