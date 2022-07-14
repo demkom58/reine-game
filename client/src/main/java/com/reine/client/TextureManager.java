@@ -29,6 +29,21 @@ public class TextureManager {
     public TextureManager() {
     }
 
+    public void registerTextures(File texturesDirectory) {
+        File[] textures = texturesDirectory.listFiles();
+        if (textures == null) {
+            throw new IllegalArgumentException("No textures!");
+        }
+
+        for (File tex : textures) {
+            if (tex.isDirectory()) {
+                continue;
+            }
+
+            registerTexture(tex.getName());
+        }
+    }
+
     public void registerTexture(String name) {
         textureResources.add(new ImageResource(name));
     }

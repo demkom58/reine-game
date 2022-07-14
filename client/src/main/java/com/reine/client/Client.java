@@ -42,20 +42,7 @@ public class Client extends ReineGame {
 
     @Override
     public void start() throws RuntimeException {
-        File texturesDirectory = new File("assets/textures/");
-        File[] textures = texturesDirectory.listFiles();
-        if (textures == null) {
-            throw new Error("No textures!");
-        }
-
-        for (File tex : textures) {
-            if (tex.isDirectory()) {
-                continue;
-            }
-
-            textureManager.registerTexture(tex.getName());
-        }
-
+        textureManager.registerTextures(new File("assets/textures/"));
         textureManager.rebuild();
         chunkRenderer = new ChunkRenderer(renderer, textureManager);
 
