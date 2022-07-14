@@ -42,6 +42,8 @@ public class Window implements Destroyable {
 
         glfwMakeContextCurrent(handle);
         GL.createCapabilities();
+
+        setVsync(true);
     }
 
     public long getHandle() {
