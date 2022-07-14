@@ -8,13 +8,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
 public class GlShader extends GlObject {
 
-    public GlShader(ShaderType type, URL resource, String... defines) {
+    public GlShader(ShaderType type, URL resource, Collection<String> defines) {
         try {
             int handle = glCreateShader(type.id);
             setHandle(handle);
@@ -39,11 +40,11 @@ public class GlShader extends GlObject {
         }
     }
 
-    public GlShader(ShaderType type, String... defines) {
+    public GlShader(ShaderType type, Collection<String> defines) {
         int handle = glCreateShader(type.id);
         setHandle(handle);
 
-        glShaderSource(handle, defines);
+        glShaderSource(handle, defines.toArray(new String[0]));
         glCompileShader(handle);
 
         try (MemoryStack stack = stackPush()) {

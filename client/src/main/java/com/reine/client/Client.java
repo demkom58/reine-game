@@ -1,10 +1,9 @@
 package com.reine.client;
 
-import com.crown.graphic.gl.shader.GlShader;
 import com.crown.graphic.gl.shader.GlShaderProgram;
-import com.crown.graphic.gl.shader.ShaderType;
 import com.reine.block.Block;
 import com.reine.client.render.Renderer;
+import com.reine.client.render.ShaderLoader;
 import com.reine.client.render.chunk.ChunkRenderer;
 import com.reine.client.render.chunk.mesh.RenderChunk;
 import com.reine.client.save.minecaft.anvil.AnvilLoader;
@@ -30,6 +29,7 @@ public class Client extends ReineGame {
 
     Renderer renderer = new Renderer();
     TextureManager textureManager = new TextureManager();
+    ShaderLoader shaderLoader = new ShaderLoader();
     ChunkRenderer chunkRenderer;
 
     ChunkGrid chunkGrid = new ChunkGrid();
@@ -59,22 +59,11 @@ public class Client extends ReineGame {
         textureManager.rebuild();
         chunkRenderer = new ChunkRenderer(renderer, textureManager);
 
-        try (GlShader vertex = new GlShader(ShaderType.VERTEX, getClass().getResource("/shader/chunk.vsh"),
-                "#version 460 core",
-                "#define BATCH_CHUNK_COUNT " + RenderChunk.RENDER_CHUNK_SIZE);
-             GlShader fragment = new GlShader(ShaderType.FRAGMENT, getClass().getResource("/shader/chunk.fsh"),
-                     "#version 460 core",
-                     "#define TEXTURES_COUNT " + textureManager.texturesCount()
-             )) {
-            chunkShader = new GlShaderProgram(vertex, fragment);
-        }
-
-        try (GlShader vertex = new GlShader(ShaderType.VERTEX, getClass().getResource("/shader/simple.vsh"),
-                "#version 460 core");
-             GlShader fragment = new GlShader(ShaderType.FRAGMENT, getClass().getResource("/shader/simple.fsh"),
-                     "#version 460 core")) {
-            simpleShader = new GlShaderProgram(vertex, fragment);
-        }
+        simpleShader = shaderLoader.loadResource("/shader/simple.vsh", "/shader/simple.fsh");
+        chunkShader = shaderLoader.loadResource("/shader/chunk.vsh", "/shader/chunk.fsh", List.of(
+                "BATCH_CHUNK_COUNT " + RenderChunk.RENDER_CHUNK_SIZE,
+                "TEXTURES_COUNT " + textureManager.texturesCount()
+        ));
 
         File save = new File("saves/Drehmal v2.1.1 PRIMORDIAL");
         try (AnvilLoader anvilLoader = new AnvilLoader(save, Block.AIR)) {

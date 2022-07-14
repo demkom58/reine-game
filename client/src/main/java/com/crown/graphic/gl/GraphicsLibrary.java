@@ -14,8 +14,7 @@ public final class GraphicsLibrary {
     private static boolean reversZDepth = false;
     private static final GLFWErrorCallback ERROR_CALLBACK = GLFWErrorCallback.create(GraphicsLibrary::printError);
 
-    public static final int OPENGL_TARGET_VERSION_MAJOR = 4;
-    public static final int OPENGL_TARGET_VERSION_MINOR = 6;
+    public static final OglVersion OGL_VERSION = OglVersion.V4_6;
 
     public static void init() {
         setLogOnError();
@@ -24,8 +23,8 @@ public final class GraphicsLibrary {
             throw new OpenGlHostException("Failed to initialize GLFW");
         }
 
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_TARGET_VERSION_MAJOR);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_TARGET_VERSION_MINOR);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OGL_VERSION.major());
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OGL_VERSION.minor());
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         if (OperatingSystem.current() == OperatingSystem.OSX) {
