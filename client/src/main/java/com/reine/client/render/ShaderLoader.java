@@ -20,7 +20,7 @@ public class ShaderLoader {
         this.glslVersion = "#version " + glslVersion + " core";
     }
 
-    public GlShaderProgram loadResource(String vertex, String fragment, Collection<String> defines) {
+    public GlShaderProgram vertexFragResource(String vertex, String fragment, Collection<String> defines) {
         List<String> shaderDefines = new ArrayList<>(defines.size() + 1);
         shaderDefines.add(glslVersion);
         for (String define : defines) {
@@ -33,11 +33,30 @@ public class ShaderLoader {
         }
     }
 
-    public GlShaderProgram loadResource(String vertex, String fragment) {
+    public GlShaderProgram vertexFragResource(String vertex, String fragment) {
         List<String> shaderDefines = List.of(glslVersion);
         try (GlShader v = new GlShader(ShaderType.VERTEX, getClass().getResource(vertex), shaderDefines);
              GlShader f = new GlShader(ShaderType.FRAGMENT, getClass().getResource(fragment), shaderDefines)) {
             return new GlShaderProgram(v, f);
+        }
+    }
+
+    public GlShaderProgram compResource(String compute, Collection<String> defines) {
+        List<String> shaderDefines = new ArrayList<>(defines.size() + 1);
+        shaderDefines.add(glslVersion);
+        for (String define : defines) {
+            shaderDefines.add("#define " + define);
+        }
+
+        try (GlShader v = new GlShader(ShaderType.COMPUTE, getClass().getResource(compute), shaderDefines)) {
+            return new GlShaderProgram(v);
+        }
+    }
+
+    public GlShaderProgram compResource(String compute) {
+        List<String> shaderDefines = List.of(glslVersion);
+        try (GlShader v = new GlShader(ShaderType.COMPUTE, getClass().getResource(compute), shaderDefines)) {
+            return new GlShaderProgram(v);
         }
     }
 }

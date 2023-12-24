@@ -27,14 +27,13 @@ public class ChunkRenderer {
     public static final int PROJECTION_MATRIX_UNIFORM = 1;
     public static final int ALPHA_THRESHOLD_UNIFORM = 2;
 
-    private final Renderer renderer;
-    private final TextureManager textureManager;
-    private final ChunkMesher mesher;
-
     private final Map<ChunkPosition, FaceChunk> facedChunks = new HashMap<>();
 
     private final Map<RenderChunk.Position, RenderChunk> renderChunks = new HashMap<>();
 
+    private final Renderer renderer;
+    private final TextureManager textureManager;
+    private final ChunkMesher mesher;
 
     public ChunkRenderer(Renderer renderer, TextureManager textureManager) {
         this.renderer = renderer;

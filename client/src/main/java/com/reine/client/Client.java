@@ -46,8 +46,8 @@ public class Client extends ReineGame {
         textureManager.rebuild();
         chunkRenderer = new ChunkRenderer(renderer, textureManager);
 
-        simpleShader = shaderLoader.loadResource("/shader/simple.vsh", "/shader/simple.fsh");
-        chunkShader = shaderLoader.loadResource("/shader/chunk.vsh", "/shader/chunk.fsh", List.of(
+        simpleShader = shaderLoader.vertexFragResource("/shader/simple.vsh", "/shader/simple.fsh");
+        chunkShader = shaderLoader.vertexFragResource("/shader/chunk.vsh", "/shader/chunk.fsh", List.of(
                 "BATCH_CHUNK_COUNT " + RenderChunk.RENDER_CHUNK_SIZE,
                 "TEXTURES_COUNT " + textureManager.texturesCount()
         ));
