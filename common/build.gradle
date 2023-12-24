@@ -2,12 +2,12 @@ plugins {
     id 'java-library'
 }
 
-project.ext.fastUtilVersion = "8.5.8"
-project.ext.guavaVersion = "31.1-jre"
-project.ext.gsonVersion = "2.9.0"
-project.ext.jbAnnotationVersion = "23.0.0"
-project.ext.jomlVersion = "1.10.4"
-project.ext.nettyVersion = "4.1.77.Final"
+project.ext.fastUtilVersion = "8.5.12"
+project.ext.guavaVersion = "33.0-jre"
+project.ext.gsonVersion = "2.10.1"
+project.ext.jbAnnotationVersion = "24.1.0"
+project.ext.jomlVersion = "1.10.5"
+project.ext.nettyVersion = "4.1.104.Final"
 
 dependencies {
     api "it.unimi.dsi:fastutil:$fastUtilVersion"

@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'idea'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 allprojects {
@@ -13,13 +13,13 @@ allprojects {
     group = "com.reine"
     version = "1.0"
 
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 
     dependencies {
-        testImplementation 'org.mockito:mockito-core:4.6.1'
-        testImplementation 'org.mockito:mockito-junit-jupiter:4.6.1'
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+        testImplementation 'org.mockito:mockito-core:5.8.0'
+        testImplementation 'org.mockito:mockito-junit-jupiter:5.8.0'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
     }
 }
