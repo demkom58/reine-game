@@ -6,6 +6,8 @@ import com.crown.graphic.util.Destroyable;
 import com.crown.output.window.Window;
 import com.crown.util.GameLoop;
 
+import java.awt.*;
+
 public abstract class CrownGame implements Game, Destroyable {
     protected final Window window;
     protected final Camera camera;
@@ -17,12 +19,13 @@ public abstract class CrownGame implements Game, Destroyable {
         this.window = new Window(width, height, title);
         this.camera = new Camera();
         this.gameLoop = gameLoop;
-
-        this.onResize(window, width, height);
-        this.window.setResizeCallback(this::onResize);
     }
 
     public void start() {
+        final Dimension size = window.getSize();
+        this.onResize(window, size.width, size.height);
+        this.window.setResizeCallback(this::onResize);
+
         gameLoop.init();
         gameLoop.loop(this);
     }
