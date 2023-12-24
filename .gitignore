@@ -1,5 +1,6 @@
 ### Project
 .idea/
+.fleet/
 run/
 
 ### Java template
