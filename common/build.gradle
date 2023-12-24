@@ -3,7 +3,7 @@ plugins {
 }
 
 project.ext.fastUtilVersion = "8.5.12"
-project.ext.guavaVersion = "33.0-jre"
+project.ext.guavaVersion = "33.0.0-jre"
 project.ext.gsonVersion = "2.10.1"
 project.ext.jbAnnotationVersion = "24.1.0"
 project.ext.jomlVersion = "1.10.5"
